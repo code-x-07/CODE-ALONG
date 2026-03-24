@@ -1,5 +1,6 @@
 import clsx from 'clsx';
 import React from 'react';
+import { useSessionCall } from '../context/SessionCallContext';
 
 interface VideoBubblesProps {
   className?: string;
@@ -7,40 +8,54 @@ interface VideoBubblesProps {
 }
 
 export const VideoBubbles = React.memo(function VideoBubbles({ className, stacked = true }: VideoBubblesProps) {
+  const { participants, isConnected, openJoinModal } = useSessionCall();
+  const visibleParticipants = participants.slice(0, 2);
+
+  if (!isConnected || visibleParticipants.length === 0) {
+    return (
+      <button
+        onClick={openJoinModal}
+        className={clsx(
+          "pointer-events-auto rounded-2xl border border-white/10 bg-black/60 px-4 py-3 text-left text-xs font-bold uppercase tracking-[0.18em] text-white/60 backdrop-blur-md transition-colors hover:border-cyan-400/30 hover:text-cyan-300",
+          className,
+        )}
+      >
+        Join room
+      </button>
+    );
+  }
+
   return (
     <div className={clsx("flex items-center justify-center pointer-events-none", className)}>
-      {/* User Bubble (Green) */}
-      <div 
-        className={clsx(
-          "relative w-20 h-20 rounded-full border-2 border-neon-green shadow-[0_0_15px_rgba(57,255,20,0.5)] overflow-hidden bg-black z-20 will-change-transform",
-          stacked && "mr-[-20px]"
-        )}
-        style={{ animation: 'fadeInScale 0.3s ease-out' }}
-      >
-        <img 
-          src="https://images.unsplash.com/photo-1612180767923-91c5b42d84dd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjeWJlcnB1bmslMjBoYWNrZXIlMjBhdmF0YXIlMjBuZW9ufGVufDF8fHx8MTc3MTY4MjM1MHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral" 
-          alt="You" 
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 bg-black/60 px-2 py-0.5 rounded text-[10px] text-neon-green font-bold backdrop-blur-sm">
-          You
+      {visibleParticipants.map((participant, index) => (
+        <div 
+          key={participant.id}
+          className={clsx(
+            "relative w-20 h-20 rounded-full border-2 overflow-hidden bg-black will-change-transform",
+            participant.accent === "green" && "border-neon-green shadow-[0_0_15px_rgba(57,255,20,0.5)] z-20",
+            participant.accent === "pink" && "border-neon-pink shadow-[0_0_15px_rgba(255,20,147,0.5)] z-10",
+            participant.accent === "cyan" && "border-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.4)] z-10",
+            stacked && index === 0 && "mr-[-20px]",
+          )}
+          style={{ animation: `fadeInScale 0.3s ease-out ${index * 0.1}s backwards` }}
+        >
+          <img 
+            src={participant.avatarUrl}
+            alt={participant.name}
+            className={clsx("w-full h-full object-cover", participant.isCameraOff && "opacity-40 grayscale")}
+          />
+          <div
+            className={clsx(
+              "absolute bottom-1 left-1/2 -translate-x-1/2 rounded bg-black/60 px-2 py-0.5 text-[10px] font-bold backdrop-blur-sm",
+              participant.accent === "green" && "text-neon-green",
+              participant.accent === "pink" && "text-neon-pink",
+              participant.accent === "cyan" && "text-cyan-300",
+            )}
+          >
+            {participant.name}
+          </div>
         </div>
-      </div>
-
-      {/* Koala Bubble (Pink) */}
-      <div 
-        className="relative w-20 h-20 rounded-full border-2 border-neon-pink shadow-[0_0_15px_rgba(255,20,147,0.5)] overflow-hidden bg-black z-10 will-change-transform"
-        style={{ animation: 'fadeInScale 0.3s ease-out 0.1s backwards' }}
-      >
-        <img 
-          src="https://images.unsplash.com/photo-1530739130845-c4121d38e013?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxrb2FsYSUyMHBvcnRyYWl0fGVufDF8fHx8MTc3MTY4MjM1MHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral" 
-          alt="Koala" 
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 bg-black/60 px-2 py-0.5 rounded text-[10px] text-neon-pink font-bold backdrop-blur-sm">
-          koala
-        </div>
-      </div>
+      ))}
     </div>
   );
 });

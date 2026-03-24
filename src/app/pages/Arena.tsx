@@ -3,14 +3,10 @@ import { Sidebar } from '../components/Sidebar';
 import { CodeEditor } from '../components/CodeEditor';
 import { VideoBubbles } from '../components/VideoBubbles';
 import { Swords } from 'lucide-react';
+import { useWorkspace } from '../context/WorkspaceContext';
 
 export default function ArenaPage() {
-  const [playerCode, setPlayerCode] = useState(`// Your Code (JavaScript)
-function solveChallenge(input) {
-  // Write your solution here
-  return input.split('').reverse().join('');
-}`);
-
+  const { arenaPlayerCode, setArenaPlayerCode } = useWorkspace();
   const [opponentCode, setOpponentCode] = useState(`# Opponent Code (Python)
 def solve_challenge(input_str):
     # Opponent is typing...
@@ -35,9 +31,9 @@ def solve_challenge(input_str):
           </div>
           <div className="flex-1 relative rounded-lg overflow-hidden border border-neon-green/20 shadow-[0_0_20px_rgba(57,255,20,0.05)]">
             <CodeEditor 
-              value={playerCode} 
-              onChange={setPlayerCode} 
-              language="js" 
+              value={arenaPlayerCode} 
+              onChange={setArenaPlayerCode} 
+              language="javascript" 
               className="h-full bg-black/40"
             />
           </div>
@@ -56,7 +52,7 @@ def solve_challenge(input_str):
              <CodeEditor 
                value={opponentCode} 
                onChange={handleOpponentCodeChange} 
-               language="py" 
+               language="python" 
                className="h-full bg-black/40"
                readOnly={true}
              />

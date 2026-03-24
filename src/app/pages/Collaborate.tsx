@@ -1,41 +1,35 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { Sidebar } from '../components/Sidebar';
 import { CodeEditor } from '../components/CodeEditor';
 import { VideoBubbles } from '../components/VideoBubbles';
-import { Terminal, X, Maximize2, Minimize2, MoreHorizontal, Play, Save } from 'lucide-react';
+import { Terminal, X, Maximize2, Minimize2, MoreHorizontal, Save } from 'lucide-react';
 import { motion } from 'motion/react';
 import clsx from 'clsx';
+import { useWorkspace } from '../context/WorkspaceContext';
+import { LANGUAGE_LABELS } from '../utils/executeCode';
 
 export default function CollaboratePage() {
-  const [code, setCode] = useState(`// Welcome to Code Along!
-// Start collaborating with your team.
+  const {
+    activeFile,
+    activeFileId,
+    openFiles,
+    setActiveFile,
+    closeFile,
+    updateActiveFileContent,
+    isTerminalOpen,
+    setIsTerminalOpen,
+    terminalEntries,
+    executionStatus,
+    appendTerminalEntry,
+  } = useWorkspace();
 
-function initializeApp() {
-  const user = authenticate();
-  console.log("User logged in:", user.name);
-  
-  // Connect to websocket
-  const socket = new WebSocket("wss://api.codealong.io");
-  
-  socket.onopen = () => {
-    console.log("Connected to server");
-    startSession();
-  };
-}
-
-function startSession() {
-  // Initialize collaboration session
-  console.log("Session started");
-}
-
-initializeApp();`);
-
-  const [isTerminalOpen, setIsTerminalOpen] = useState(true);
-
-  // Memoize callbacks to prevent unnecessary re-renders
   const handleTerminalToggle = useCallback(() => {
     setIsTerminalOpen(prev => !prev);
-  }, []);
+  }, [setIsTerminalOpen]);
+
+  const handleSaveClick = useCallback(() => {
+    appendTerminalEntry("system", `Workspace state saved locally for ${activeFile?.name || "current file"}.`);
+  }, [activeFile?.name, appendTerminalEntry]);
 
   return (
     <div className="flex flex-1 h-[calc(100vh-64px)] overflow-hidden bg-transparent text-white relative">
@@ -47,21 +41,45 @@ initializeApp();`);
         
         {/* Editor Tabs */}
         <div className="h-10 bg-black/40 border-b border-white/5 flex items-center px-2 gap-2 backdrop-blur-sm">
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-white/10 rounded-t-lg border-t border-x border-white/10 text-sm font-medium text-white relative group cursor-pointer">
-            <span className="text-yellow-400">JS</span>
-            <span>index.js</span>
-            <X className="w-3 h-3 ml-2 text-white/40 group-hover:text-white transition-colors" />
-            <div className="absolute bottom-[-1px] left-0 right-0 h-[1px] bg-[#1e1e1e]" /> {/* Mask border-bottom */}
-            <div className="absolute top-0 left-0 right-0 h-[2px] bg-neon-green" />
-          </div>
-          
-          <div className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white/40 hover:text-white/80 cursor-pointer transition-colors">
-            <span className="text-blue-400">#</span>
-            <span>styles.css</span>
-          </div>
+          {openFiles.map((file) => {
+            const isActive = file.id === activeFileId;
+
+            return (
+              <div
+                key={file.id}
+                onClick={() => setActiveFile(file.id)}
+                className={clsx(
+                  "flex items-center gap-2 px-3 py-1.5 rounded-t-lg border-t border-x text-sm font-medium relative group cursor-pointer",
+                  isActive
+                    ? "bg-white/10 border-white/10 text-white"
+                    : "border-transparent text-white/40 hover:text-white/80",
+                )}
+              >
+                <span className={clsx(isActive ? "text-neon-green" : "text-cyan-300")}>
+                  {LANGUAGE_LABELS[file.language]}
+                </span>
+                <span>{file.name}</span>
+                <button
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    closeFile(file.id);
+                  }}
+                  className="rounded p-0.5 text-white/40 transition-colors hover:text-white"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+                {isActive && (
+                  <>
+                    <div className="absolute bottom-[-1px] left-0 right-0 h-[1px] bg-[#1e1e1e]" />
+                    <div className="absolute top-0 left-0 right-0 h-[2px] bg-neon-green" />
+                  </>
+                )}
+              </div>
+            );
+          })}
           
           <div className="ml-auto flex items-center gap-2">
-             <button className="p-1.5 rounded hover:bg-white/10 text-white/60 hover:text-white transition-colors">
+             <button onClick={handleSaveClick} className="p-1.5 rounded hover:bg-white/10 text-white/60 hover:text-white transition-colors">
                <Save className="w-4 h-4" />
              </button>
              <button className="p-1.5 rounded hover:bg-white/10 text-white/60 hover:text-white transition-colors">
@@ -72,12 +90,18 @@ initializeApp();`);
 
         {/* Code Editor Area */}
         <div className="flex-1 relative bg-[#0a0a0a]/80 backdrop-blur-sm">
-          <CodeEditor 
-            value={code} 
-            onChange={setCode} 
-            language="js" 
-            className="h-full"
-          />
+          {activeFile ? (
+            <CodeEditor 
+              value={activeFile.content} 
+              onChange={updateActiveFileContent} 
+              language={activeFile.language} 
+              className="h-full"
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center text-white/40">
+              Create a file in the explorer to start editing.
+            </div>
+          )}
           
           {/* Floating Video Bubbles */}
           <div className="absolute top-4 right-4 z-30 pointer-events-none">
@@ -121,32 +145,37 @@ initializeApp();`);
           <div className={clsx("flex-1 p-4 font-mono text-sm overflow-y-auto custom-scrollbar relative", !isTerminalOpen && "hidden")}>
              <div className="absolute inset-0 bg-black/50 pointer-events-none" /> {/* Darken background */}
              <div className="relative z-10 text-white/80">
-                <div className="mb-2 opacity-50 text-xs">Microsoft Windows [Version 10.0.19045.3693]</div>
-                <div className="mb-4 opacity-50 text-xs">(c) Microsoft Corporation. All rights reserved.</div>
-                
-                <div className="group">
-                  <span className="text-neon-green">user@code-along</span>
-                  <span className="text-white/40">:</span>
-                  <span className="text-blue-400">~/projects/app</span>
-                  <span className="text-white/40">$</span>
-                  <span className="ml-2">npm run dev</span>
-                </div>
-                
-                <div className="mt-2 pl-4 border-l-2 border-white/10">
-                  <div className="text-green-400">&gt; code-along@1.0.0 dev</div>
-                  <div className="text-green-400">&gt; next dev --turbo</div>
-                  <br/>
-                  <div className="text-white/60">Ready in 1234ms</div>
-                  <div className="text-white/60">
-                    <span className="inline-block w-2 h-2 rounded-full bg-green-500 mr-2" style={{ animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }} />
-                    Server connected to port 3000
-                  </div>
+                <div className="mb-2 opacity-50 text-xs">Code Along execution console</div>
+                <div className="mb-4 opacity-50 text-xs">Requests are sent through your app server, not directly from the browser.</div>
+
+                <div className="space-y-3">
+                  {terminalEntries.map((entry) => (
+                    <div
+                      key={entry.id}
+                      className={clsx(
+                        "whitespace-pre-wrap break-words",
+                        entry.kind === "command" && "text-neon-green",
+                        entry.kind === "output" && "text-white/90",
+                        entry.kind === "error" && "text-red-400",
+                        entry.kind === "system" && "text-white/50",
+                      )}
+                    >
+                      {entry.text}
+                    </div>
+                  ))}
+
+                  {executionStatus === "running" && (
+                    <div className="flex items-center gap-2 text-cyan-400">
+                      <span className="inline-block w-2 h-2 rounded-full bg-cyan-400" style={{ animation: 'pulse 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }} />
+                      Sandbox is executing...
+                    </div>
+                  )}
                 </div>
 
                 <div className="mt-4 group flex items-center">
                   <span className="text-neon-green">user@code-along</span>
                   <span className="text-white/40">:</span>
-                  <span className="text-blue-400">~/projects/app</span>
+                  <span className="text-blue-400">~/workspace</span>
                   <span className="text-white/40">$</span>
                   <span className="ml-2 block w-2 h-4 bg-neon-green" style={{ animation: 'blink 1s step-end infinite' }} />
                 </div>

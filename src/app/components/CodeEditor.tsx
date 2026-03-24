@@ -1,15 +1,29 @@
 import React, { useMemo } from 'react';
 import Editor from 'react-simple-code-editor';
 import Prism from 'prismjs';
+import 'prismjs/components/prism-clike';
+import 'prismjs/components/prism-markup';
+import 'prismjs/components/prism-markup-templating';
 import 'prismjs/components/prism-javascript';
 import 'prismjs/components/prism-python';
+import 'prismjs/components/prism-java';
+import 'prismjs/components/prism-c';
+import 'prismjs/components/prism-cpp';
+import 'prismjs/components/prism-rust';
+import 'prismjs/components/prism-go';
+import 'prismjs/components/prism-ruby';
+import 'prismjs/components/prism-php';
+import 'prismjs/components/prism-csharp';
+import 'prismjs/components/prism-css';
+import 'prismjs/components/prism-json';
 import '../../styles/prism-theme.css'; // Custom theme
 import clsx from 'clsx';
+import { EditorLanguage } from '../utils/executeCode';
 
 interface CodeEditorProps {
   value: string;
   onChange: (value: string) => void;
-  language: 'js' | 'py';
+  language: EditorLanguage;
   className?: string;
   readOnly?: boolean;
 }
@@ -23,11 +37,19 @@ export const CodeEditor = React.memo(function CodeEditor({ value, onChange, lang
 
   // Memoize highlight function to prevent recreation
   const highlightCode = useMemo(() => {
-    return (code: string) => Prism.highlight(
-      code, 
-      language === 'js' ? Prism.languages.javascript : Prism.languages.python, 
-      language === 'js' ? 'javascript' : 'python'
-    );
+    const prismLanguage = Prism.languages[language];
+
+    return (code: string) => {
+      if (!prismLanguage) {
+        return code;
+      }
+
+      try {
+        return Prism.highlight(code, prismLanguage, language);
+      } catch {
+        return code;
+      }
+    };
   }, [language]);
 
   return (

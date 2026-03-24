@@ -1,8 +1,10 @@
 import { Link, useLocation } from "react-router-dom";
-import { Zap, Play, Code2, Swords, PenTool } from "lucide-react";
+import { Zap, Play, Code2, Swords, PenTool, Radio } from "lucide-react";
 import { motion } from "motion/react";
 import clsx from "clsx";
 import React from "react";
+import { useWorkspace } from "../context/WorkspaceContext";
+import { useSessionCall } from "../context/SessionCallContext";
 
 interface TopNavProps {
   onProfileClick: () => void;
@@ -11,6 +13,10 @@ interface TopNavProps {
 export const TopNav = React.memo(function TopNav({ onProfileClick }: TopNavProps) {
   const location = useLocation();
   const currentPath = location.pathname.split("/")[1] || "collaborate";
+  const { executionStatus, runMode } = useWorkspace();
+  const { activeRoomId, isConnected, openJoinModal } = useSessionCall();
+  const canRun = currentPath === "collaborate" || currentPath === "arena";
+  const isRunning = executionStatus === "running";
 
   const tabs = [
     { id: "collaborate", label: "Collaborate", path: "/collaborate", icon: <Code2 className="w-4 h-4" /> },
@@ -70,10 +76,34 @@ export const TopNav = React.memo(function TopNav({ onProfileClick }: TopNavProps
 
       {/* Right: Actions */}
       <div className="flex items-center gap-4">
-        <button className="relative overflow-hidden group px-6 py-2 bg-neon-green/10 border border-neon-green/30 rounded-lg text-neon-green font-bold text-sm hover:bg-neon-green hover:text-black transition-all shadow-[0_0_10px_rgba(57,255,20,0.1)] hover:shadow-[0_0_20px_rgba(57,255,20,0.4)]">
+        <button
+          onClick={openJoinModal}
+          className={clsx(
+            "relative overflow-hidden rounded-lg border px-4 py-2 text-sm font-bold transition-all",
+            isConnected
+              ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-300 hover:bg-cyan-400 hover:text-black"
+              : "border-white/10 bg-white/5 text-white/70 hover:border-cyan-400/30 hover:text-cyan-300",
+          )}
+        >
+          <span className="relative z-10 flex items-center gap-2">
+            <Radio className="h-4 w-4" />
+            {isConnected && activeRoomId ? activeRoomId : "JOIN ROOM"}
+          </span>
+        </button>
+
+        <button
+          onClick={() => void runMode(currentPath as "collaborate" | "arena" | "whiteboard")}
+          disabled={!canRun || isRunning}
+          className={clsx(
+            "relative overflow-hidden group px-6 py-2 border rounded-lg font-bold text-sm transition-all shadow-[0_0_10px_rgba(57,255,20,0.1)]",
+            canRun && !isRunning
+              ? "bg-neon-green/10 border-neon-green/30 text-neon-green hover:bg-neon-green hover:text-black hover:shadow-[0_0_20px_rgba(57,255,20,0.4)]"
+              : "bg-white/5 border-white/10 text-white/30 cursor-not-allowed",
+          )}
+        >
           <span className="relative z-10 flex items-center gap-2">
             <Play className="w-4 h-4 fill-current" />
-            RUN CODE
+            {isRunning ? "RUNNING..." : "RUN CODE"}
           </span>
         </button>
         
