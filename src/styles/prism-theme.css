@@ -1,0 +1,122 @@
+/* PrismJS Cyberpunk Theme for Code Along */
+code[class*="language-"],
+pre[class*="language-"] {
+	color: #e0e0e0;
+	background: none;
+	text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+	font-family: 'Fira Code', 'JetBrains Mono', Consolas, Monaco, monospace;
+	font-size: 14px;
+	text-align: left;
+	white-space: pre;
+	word-spacing: normal;
+	word-break: normal;
+	word-wrap: normal;
+	line-height: 1.5;
+	tab-size: 4;
+	hyphens: none;
+}
+
+/* Code blocks */
+pre[class*="language-"] {
+	padding: 1em;
+	margin: 0;
+	overflow: auto;
+}
+
+:not(pre) > code[class*="language-"],
+pre[class*="language-"] {
+	background: transparent;
+}
+
+/* Inline code */
+:not(pre) > code[class*="language-"] {
+	padding: .1em;
+	border-radius: .3em;
+	white-space: normal;
+}
+
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+	color: #6c6c6c;
+    font-style: italic;
+}
+
+.token.punctuation {
+	color: #e0e0e0;
+}
+
+.namespace {
+	opacity: .7;
+}
+
+.token.property,
+.token.tag,
+.token.constant,
+.token.symbol,
+.token.deleted {
+	color: #FF1493; /* Neon Pink */
+    text-shadow: 0 0 5px rgba(255, 20, 147, 0.3);
+}
+
+.token.boolean,
+.token.number {
+	color: #bd93f9; /* Purple */
+}
+
+.token.selector,
+.token.attr-name,
+.token.string,
+.token.char,
+.token.builtin,
+.token.inserted {
+	color: #39FF14; /* Neon Green */
+    text-shadow: 0 0 5px rgba(57, 255, 20, 0.3);
+}
+
+.token.operator,
+.token.entity,
+.token.url,
+.language-css .token.string,
+.style .token.string,
+.token.variable {
+	color: #f8f8f2;
+}
+
+.token.atrule,
+.token.attr-value,
+.token.function,
+.token.class-name {
+	color: #00FFFF; /* Cyan */
+    text-shadow: 0 0 5px rgba(0, 255, 255, 0.3);
+}
+
+.token.keyword {
+	color: #FF00FF; /* Magenta */
+    text-shadow: 0 0 5px rgba(255, 0, 255, 0.3);
+}
+
+.token.regex,
+.token.important {
+	color: #ffb86c;
+}
+
+.token.important,
+.token.bold {
+	font-weight: bold;
+}
+
+.token.italic {
+	font-style: italic;
+}
+
+.token.entity {
+	cursor: help;
+}
+
+/* Selection */
+::selection {
+    background: rgba(57, 255, 20, 0.2);
+    color: inherit;
+}
