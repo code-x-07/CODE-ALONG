@@ -62,6 +62,14 @@ export const FILE_EXTENSION_LANGUAGE_MAP: Record<string, EditorLanguage> = {
 
 export const RUNNABLE_LANGUAGES = new Set<RunnableLanguage>(Object.keys(LANGUAGE_VERSIONS) as RunnableLanguage[]);
 
+type PistonRuntime = {
+  language: RunnableLanguage;
+  version: string;
+  aliases?: string[];
+};
+
+let runtimesPromise: Promise<PistonRuntime[]> | null = null;
+
 export function getLanguageFromFileName(fileName: string): EditorLanguage {
   const extension = fileName.split(".").pop()?.toLowerCase() || "";
   return FILE_EXTENSION_LANGUAGE_MAP[extension] || "text";
@@ -95,8 +103,39 @@ type ExecuteCodeArgs = {
   fileName?: string;
 };
 
+async function loadInstalledRuntimes() {
+  if (!runtimesPromise) {
+    runtimesPromise = fetch("/api/piston/runtimes", {
+      headers: {
+        Accept: "application/json",
+      },
+    }).then(async (response) => {
+      if (!response.ok) {
+        throw new Error("Failed to load runtimes.");
+      }
+
+      return (await response.json()) as PistonRuntime[];
+    }).catch(() => []);
+  }
+
+  return runtimesPromise;
+}
+
+async function resolveRuntimeVersion(language: RunnableLanguage) {
+  const fallbackVersion = LANGUAGE_VERSIONS[language];
+  const runtimes = await loadInstalledRuntimes();
+  const directMatch = runtimes.find((runtime) => runtime.language === language);
+
+  if (directMatch?.version) {
+    return directMatch.version;
+  }
+
+  const aliasMatch = runtimes.find((runtime) => runtime.aliases?.includes(language));
+  return aliasMatch?.version || fallbackVersion;
+}
+
 export async function executeCode({ language, sourceCode, fileName = "main.txt" }: ExecuteCodeArgs) {
-  const version = LANGUAGE_VERSIONS[language];
+  const version = await resolveRuntimeVersion(language);
 
   const response = await fetch("/api/piston/execute", {
     method: "POST",
