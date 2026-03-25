@@ -39,11 +39,19 @@ export const VideoBubbles = React.memo(function VideoBubbles({ className, stacke
           )}
           style={{ animation: `fadeInScale 0.3s ease-out ${index * 0.1}s backwards` }}
         >
-          <img 
-            src={participant.avatarUrl}
-            alt={participant.name}
-            className={clsx("w-full h-full object-cover", participant.isCameraOff && "opacity-40 grayscale")}
-          />
+          {participant.avatarUrl ? (
+            <img 
+              src={participant.avatarUrl}
+              alt={participant.name}
+              className={clsx("w-full h-full object-cover", participant.isCameraOff && "opacity-40 grayscale")}
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_top,#13361f,transparent_60%),linear-gradient(135deg,#050505,#10131a)]">
+              <span className="text-2xl font-black text-white/90">
+                {participant.name.slice(0, 1).toUpperCase()}
+              </span>
+            </div>
+          )}
           <div
             className={clsx(
               "absolute bottom-1 left-1/2 -translate-x-1/2 rounded bg-black/60 px-2 py-0.5 text-[10px] font-bold backdrop-blur-sm",

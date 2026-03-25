@@ -1,79 +1,179 @@
-import React, { useState, useCallback } from 'react';
-import { Sidebar } from '../components/Sidebar';
-import { CodeEditor } from '../components/CodeEditor';
-import { VideoBubbles } from '../components/VideoBubbles';
-import { Swords } from 'lucide-react';
-import { useWorkspace } from '../context/WorkspaceContext';
+import React from "react";
+import { Radio, Swords, TimerReset, UserPlus, Video } from "lucide-react";
+import { Sidebar } from "../components/Sidebar";
+import { CodeEditor } from "../components/CodeEditor";
+import { CallParticipantTile } from "../components/CallParticipantTile";
+import { useWorkspace } from "../context/WorkspaceContext";
+import { useSessionCall } from "../context/SessionCallContext";
 
 export default function ArenaPage() {
   const { arenaPlayerCode, setArenaPlayerCode } = useWorkspace();
-  const [opponentCode, setOpponentCode] = useState(`# Opponent Code (Python)
-def solve_challenge(input_str):
-    # Opponent is typing...
-    return input_str[::-1]`);
-
-  // Memoize setters
-  const handleOpponentCodeChange = useCallback((val: string) => setOpponentCode(val), []);
+  const {
+    activeRoomId,
+    participants,
+    isConnected,
+    isConnecting,
+    openJoinModal,
+    errorMessage,
+  } = useSessionCall();
+  const remoteParticipants = participants.filter((participant) => !participant.isLocal);
 
   return (
-    <div className="flex flex-1 h-[calc(100vh-64px)] overflow-hidden bg-transparent text-white relative">
+    <div className="relative flex h-[calc(100vh-64px)] flex-1 overflow-hidden bg-transparent text-white">
       <Sidebar />
 
-      <div className="flex-1 flex flex-row relative">
-        {/* Player 1 Panel */}
-        <div className="flex-1 flex flex-col p-4 pr-2 border-r border-white/5 relative bg-black/20 backdrop-blur-sm">
-          <div className="mb-4 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 bg-neon-green rounded-full shadow-[0_0_8px_#39FF14]" style={{ animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }}></span>
-              <span className="text-neon-green font-bold text-sm uppercase tracking-wider">Your Code</span>
+      <div className="relative flex flex-1 flex-col overflow-hidden bg-black/15">
+        <div className="border-b border-white/5 bg-black/25 px-5 py-4 backdrop-blur-xl">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-neon-green">
+                <Swords className="h-4 w-4" />
+                Arena Match Room
+              </div>
+              <h1 className="mt-2 text-2xl font-black tracking-tight text-white">
+                {activeRoomId || "Create a room to start the duel"}
+              </h1>
+              <p className="mt-2 max-w-2xl text-sm text-white/50">
+                Join the same room code with your opponent so the video call, presence, and Arena session stay locked to one match.
+              </p>
             </div>
-            <div className="text-xs text-white/40 font-mono">JS</div>
+
+            <div className="flex flex-wrap gap-3">
+              <div className="rounded-2xl border border-white/10 bg-black/50 px-4 py-3">
+                <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/40">Call Status</div>
+                <div className="mt-1 flex items-center gap-2 text-sm font-bold text-white">
+                  <Radio className="h-4 w-4 text-cyan-300" />
+                  {isConnecting ? "Connecting" : isConnected ? "Live" : "Offline"}
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-black/50 px-4 py-3">
+                <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/40">Players</div>
+                <div className="mt-1 text-sm font-bold text-white">{participants.length || 0} connected</div>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-black/50 px-4 py-3">
+                <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/40">Clock</div>
+                <div className="mt-1 flex items-center gap-2 text-sm font-bold text-white">
+                  <TimerReset className="h-4 w-4 text-neon-pink" />
+                  Ready to start
+                </div>
+              </div>
+
+              <button
+                onClick={openJoinModal}
+                className="inline-flex items-center gap-2 rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-sm font-bold text-cyan-300 transition-colors hover:bg-cyan-400 hover:text-black"
+              >
+                <UserPlus className="h-4 w-4" />
+                {activeRoomId ? "Switch Room" : "Join Arena Room"}
+              </button>
+            </div>
           </div>
-          <div className="flex-1 relative rounded-lg overflow-hidden border border-neon-green/20 shadow-[0_0_20px_rgba(57,255,20,0.05)]">
-            <CodeEditor 
-              value={arenaPlayerCode} 
-              onChange={setArenaPlayerCode} 
-              language="javascript" 
-              className="h-full bg-black/40"
-            />
-          </div>
+
+          {errorMessage && (
+            <div className="mt-4 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+              {errorMessage}
+            </div>
+          )}
         </div>
 
-        {/* Player 2 Panel */}
-        <div className="flex-1 flex flex-col p-4 pl-2 relative bg-black/20 backdrop-blur-sm">
-          <div className="mb-4 flex items-center justify-between">
-            <div className="text-xs text-white/40 font-mono">PYTHON</div>
-            <div className="flex items-center gap-2">
-              <span className="text-neon-pink font-bold text-sm uppercase tracking-wider">Opponent</span>
-              <span className="w-2 h-2 bg-neon-pink rounded-full shadow-[0_0_8px_#FF1493]" style={{ animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }}></span>
-            </div>
-          </div>
-          <div className="flex-1 relative rounded-lg overflow-hidden border border-neon-pink/20 shadow-[0_0_20px_rgba(255,20,147,0.05)]">
-             <CodeEditor 
-               value={opponentCode} 
-               onChange={handleOpponentCodeChange} 
-               language="python" 
-               className="h-full bg-black/40"
-               readOnly={true}
-             />
-             {/* Typing Indicator Overlay */}
-             <div className="absolute bottom-4 right-4 flex gap-1 pointer-events-none">
-               <div className="w-1.5 h-1.5 bg-neon-pink/50 rounded-full" style={{ animation: 'bounce 1s infinite', animationDelay: '0ms' }} />
-               <div className="w-1.5 h-1.5 bg-neon-pink/50 rounded-full" style={{ animation: 'bounce 1s infinite', animationDelay: '150ms' }} />
-               <div className="w-1.5 h-1.5 bg-neon-pink/50 rounded-full" style={{ animation: 'bounce 1s infinite', animationDelay: '300ms' }} />
-             </div>
-          </div>
-        </div>
+        <div className="grid flex-1 gap-4 overflow-hidden p-4 xl:grid-cols-[minmax(0,1.8fr)_minmax(340px,0.95fr)]">
+          <section className="flex min-h-0 flex-col rounded-[28px] border border-neon-green/15 bg-black/40 p-4 shadow-[0_0_30px_rgba(57,255,20,0.08)] backdrop-blur-xl">
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-neon-green">
+                  <span className="h-2 w-2 rounded-full bg-neon-green shadow-[0_0_10px_#39FF14]" />
+                  Your Arena Editor
+                </div>
+                <div className="mt-1 text-sm text-white/45">
+                  Run your active Arena code from the top bar while the room call stays live.
+                </div>
+              </div>
 
-        {/* Center VS Badge */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-30 flex flex-col items-center gap-4 pointer-events-none">
-          <div className="bg-black/90 backdrop-blur-xl rounded-full p-4 border border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.8)] relative group">
-             <div className="absolute inset-0 bg-gradient-to-tr from-neon-green/20 to-neon-pink/20 rounded-full blur-xl opacity-50 group-hover:opacity-100 transition-opacity" />
-             <Swords className="w-8 h-8 text-white relative z-10" />
-          </div>
-          <div className="bg-black/80 px-4 py-1.5 rounded-full border border-white/10 text-xs font-black tracking-[0.2em] text-white shadow-lg">
-            VS
-          </div>
+              <div className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-white/50">
+                JavaScript
+              </div>
+            </div>
+
+            <div className="min-h-0 flex-1 overflow-hidden rounded-[24px] border border-neon-green/20 bg-black/55">
+              <CodeEditor
+                value={arenaPlayerCode}
+                onChange={setArenaPlayerCode}
+                language="javascript"
+                className="h-full bg-transparent"
+              />
+            </div>
+          </section>
+
+          <aside className="flex min-h-0 flex-col gap-4">
+            <section className="flex min-h-[300px] flex-col rounded-[28px] border border-cyan-400/15 bg-black/40 p-4 shadow-[0_0_30px_rgba(34,211,238,0.08)] backdrop-blur-xl">
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-cyan-300">
+                    <Video className="h-4 w-4" />
+                    Live Video Stage
+                  </div>
+                  <div className="mt-1 text-sm text-white/45">
+                    {isConnected
+                      ? "Participants inside this Arena room."
+                      : "Join a room to start the video stage."}
+                  </div>
+                </div>
+                <div className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-white/50">
+                  {activeRoomId || "No room"}
+                </div>
+              </div>
+
+              {participants.length > 0 ? (
+                <div className="grid flex-1 auto-rows-fr gap-3 sm:grid-cols-2 xl:grid-cols-1">
+                  {participants.slice(0, 4).map((participant) => (
+                    <CallParticipantTile key={participant.id} participant={participant} />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-1 flex-col items-center justify-center rounded-[24px] border border-dashed border-white/10 bg-white/[0.02] px-6 text-center">
+                  <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10">
+                    <Video className="h-7 w-7 text-cyan-300" />
+                  </div>
+                  <div className="text-lg font-black text-white">Arena room not connected</div>
+                  <div className="mt-2 max-w-sm text-sm text-white/45">
+                    Create or join a room code. Once LiveKit connects, participant cameras and microphones will appear here.
+                  </div>
+                  <button
+                    onClick={openJoinModal}
+                    className="mt-5 inline-flex items-center gap-2 rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-sm font-bold text-cyan-300 transition-colors hover:bg-cyan-400 hover:text-black"
+                  >
+                    <UserPlus className="h-4 w-4" />
+                    Join Arena Room
+                  </button>
+                </div>
+              )}
+            </section>
+
+            <section className="rounded-[28px] border border-neon-pink/15 bg-black/40 p-4 shadow-[0_0_30px_rgba(255,20,147,0.08)] backdrop-blur-xl">
+              <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-neon-pink">
+                <Swords className="h-4 w-4" />
+                Match Telemetry
+              </div>
+              <div className="mt-4 grid gap-3">
+                <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
+                  <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/40">Opponent Slots</div>
+                  <div className="mt-1 text-sm font-bold text-white">
+                    {remoteParticipants.length > 0 ? `${remoteParticipants.length} opponent(s) joined` : "Waiting for opponent"}
+                  </div>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
+                  <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/40">Room Sync</div>
+                  <div className="mt-1 text-sm font-bold text-white">
+                    {isConnected ? "LiveKit room active" : isConnecting ? "Joining room..." : "Disconnected"}
+                  </div>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white/50">
+                  This page is now structured as a real room stage. Shared opponent editor sync and live match state can layer onto this room id next.
+                </div>
+              </div>
+            </section>
+          </aside>
         </div>
       </div>
     </div>

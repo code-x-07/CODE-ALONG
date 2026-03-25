@@ -3,6 +3,7 @@ import { promises as fs } from "node:fs";
 import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { AccessToken } from "livekit-server-sdk";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -10,6 +11,9 @@ const __dirname = path.dirname(__filename);
 const PORT = Number(process.env.PORT || 3000);
 const PISTON_BASE_URL = (process.env.PISTON_BASE_URL || "http://localhost:2000").replace(/\/$/, "");
 const PISTON_API_KEY = process.env.PISTON_API_KEY?.trim();
+const LIVEKIT_URL = process.env.LIVEKIT_URL?.trim();
+const LIVEKIT_API_KEY = process.env.LIVEKIT_API_KEY?.trim();
+const LIVEKIT_API_SECRET = process.env.LIVEKIT_API_SECRET?.trim();
 const EXECUTION_RATE_LIMIT_WINDOW_MS = Number(process.env.EXECUTION_RATE_LIMIT_WINDOW_MS || 60_000);
 const EXECUTION_RATE_LIMIT_MAX_REQUESTS = Number(process.env.EXECUTION_RATE_LIMIT_MAX_REQUESTS || 30);
 const MAX_REQUEST_BODY_BYTES = Number(process.env.MAX_REQUEST_BODY_BYTES || 256 * 1024);
@@ -114,6 +118,53 @@ async function proxyToPiston(req, res, endpointPath) {
   }
 }
 
+async function createLiveKitToken(req, res) {
+  if (!LIVEKIT_URL || !LIVEKIT_API_KEY || !LIVEKIT_API_SECRET) {
+    sendJson(res, 500, {
+      message: "LiveKit environment variables are missing. Set LIVEKIT_URL, LIVEKIT_API_KEY, and LIVEKIT_API_SECRET.",
+    });
+    return;
+  }
+
+  try {
+    const rawBody = await readRequestBody(req);
+    const { roomName, participantName } = rawBody ? JSON.parse(rawBody) : {};
+    const normalizedRoomName = String(roomName || "").trim().toUpperCase();
+    const normalizedParticipantName = String(participantName || "").trim() || "Guest";
+
+    if (!normalizedRoomName) {
+      sendJson(res, 400, { message: "roomName is required." });
+      return;
+    }
+
+    const token = new AccessToken(LIVEKIT_API_KEY, LIVEKIT_API_SECRET, {
+      identity: normalizedParticipantName,
+      name: normalizedParticipantName,
+      ttl: "10m",
+    });
+
+    token.addGrant({
+      roomJoin: true,
+      room: normalizedRoomName,
+      canPublish: true,
+      canSubscribe: true,
+      canPublishData: true,
+    });
+
+    sendJson(res, 200, {
+      token: await token.toJwt(),
+      url: LIVEKIT_URL,
+      roomName: normalizedRoomName,
+      participantName: normalizedParticipantName,
+    });
+  } catch (error) {
+    sendJson(res, 500, {
+      message: "Failed to create a LiveKit token.",
+      details: error instanceof Error ? error.message : "Unknown token error.",
+    });
+  }
+}
+
 async function serveStatic(res, requestPath) {
   const normalizedPath = requestPath === "/" ? "/index.html" : requestPath;
   const safePath = path.normalize(normalizedPath).replace(/^(\.\.[/\\])+/, "");
@@ -163,10 +214,16 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  if (url.pathname === "/api/livekit/token" && req.method === "POST") {
+    await createLiveKitToken(req, res);
+    return;
+  }
+
   if ((url.pathname === "/health" || url.pathname === "/api/health") && req.method === "GET") {
     sendJson(res, 200, {
       status: "ok",
       pistonBaseUrl: PISTON_BASE_URL,
+      livekitConfigured: Boolean(LIVEKIT_URL && LIVEKIT_API_KEY && LIVEKIT_API_SECRET),
       rateLimitWindowMs: EXECUTION_RATE_LIMIT_WINDOW_MS,
       rateLimitMaxRequests: EXECUTION_RATE_LIMIT_MAX_REQUESTS,
     });

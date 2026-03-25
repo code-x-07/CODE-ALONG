@@ -11,6 +11,8 @@ export const JoinRoomModal = React.memo(function JoinRoomModal() {
     joinRoom,
     displayName,
     activeRoomId,
+    isConnecting,
+    errorMessage,
   } = useSessionCall();
   const [nameInput, setNameInput] = useState(displayName);
   const [roomInput, setRoomInput] = useState(activeRoomId || "");
@@ -21,6 +23,18 @@ export const JoinRoomModal = React.memo(function JoinRoomModal() {
       setRoomInput(activeRoomId || "");
     }
   }, [activeRoomId, displayName, isJoinModalOpen]);
+
+  async function handleCreateRoom() {
+    await createRoom(nameInput);
+  }
+
+  async function handleJoinRoom() {
+    if (!roomInput.trim()) {
+      return;
+    }
+
+    await joinRoom(roomInput, nameInput);
+  }
 
   return (
     <AnimatePresence>
@@ -55,6 +69,7 @@ export const JoinRoomModal = React.memo(function JoinRoomModal() {
 
               <button
                 onClick={closeJoinModal}
+                disabled={isConnecting}
                 className="rounded-full border border-white/10 px-3 py-1 text-xs font-semibold text-white/50 transition-colors hover:border-white/20 hover:text-white"
               >
                 Close
@@ -89,21 +104,29 @@ export const JoinRoomModal = React.memo(function JoinRoomModal() {
 
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
               <button
-                onClick={() => createRoom(nameInput)}
+                onClick={() => void handleCreateRoom()}
+                disabled={isConnecting}
                 className="flex items-center justify-center gap-2 rounded-2xl border border-neon-green/30 bg-neon-green/10 px-4 py-3 text-sm font-bold text-neon-green transition-colors hover:bg-neon-green hover:text-black"
               >
                 <Plus className="h-4 w-4" />
-                Create New Room
+                {isConnecting ? "Connecting..." : "Create New Room"}
               </button>
 
               <button
-                onClick={() => joinRoom(roomInput, nameInput)}
+                onClick={() => void handleJoinRoom()}
+                disabled={isConnecting || !roomInput.trim()}
                 className="flex items-center justify-center gap-2 rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-sm font-bold text-cyan-300 transition-colors hover:bg-cyan-400 hover:text-black"
               >
                 <Link2 className="h-4 w-4" />
-                Join Existing Room
+                {isConnecting ? "Connecting..." : "Join Existing Room"}
               </button>
             </div>
+
+            {errorMessage && (
+              <div className="mt-4 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                {errorMessage}
+              </div>
+            )}
           </motion.div>
         </>
       )}
