@@ -60,11 +60,11 @@ export const JoinRoomModal = React.memo(function JoinRoomModal() {
               <div>
                 <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-neon-green/20 bg-neon-green/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.2em] text-neon-green">
                   <Video className="h-3.5 w-3.5" />
-                  Live Call
+                  Arena Lobby
                 </div>
-                <h2 className="text-2xl font-black tracking-tight text-white">Join by room code</h2>
+                <h2 className="text-2xl font-black tracking-tight text-white">Create or join room</h2>
                 <p className="mt-2 text-sm text-white/50">
-                  Create a room to get a shareable Arena link, or paste a room code to join an existing duel in real time.
+                  Person 1 creates the room and shares the link or code. Person 2 joins using that exact code.
                 </p>
               </div>
 
@@ -104,11 +104,7 @@ export const JoinRoomModal = React.memo(function JoinRoomModal() {
             </div>
 
             <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-xs text-white/55">
-              Create room:
-              <span className="ml-1 text-white/80">we generate the room code and share link for you.</span>
-              <br />
-              Join room:
-              <span className="ml-1 text-white/80">enter the code from your friend or open their Arena link.</span>
+              Only two players can be inside one Arena room.
             </div>
 
             <div className="mt-6 grid gap-3 sm:grid-cols-2">

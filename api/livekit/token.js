@@ -1,4 +1,4 @@
-import { AccessToken } from "livekit-server-sdk";
+import { AccessToken, RoomServiceClient } from "livekit-server-sdk";
 
 async function readBody(req) {
   if (req.body && typeof req.body === "object") {
@@ -40,6 +40,25 @@ export default async function handler(req, res) {
     if (!normalizedRoomName) {
       res.status(400).json({ message: "roomName is required." });
       return;
+    }
+
+    const serviceUrl = livekitUrl.replace(/^wss:/, "https:").replace(/^ws:/, "http:");
+    const roomService = new RoomServiceClient(serviceUrl, apiKey, apiSecret);
+
+    try {
+      const existingParticipants = await roomService.listParticipants(normalizedRoomName);
+
+      if (
+        existingParticipants.length >= 2 &&
+        !existingParticipants.some((participant) => participant.identity === normalizedParticipantName)
+      ) {
+        res.status(409).json({
+          message: "This Arena room already has two players. Ask the host for a new room code.",
+        });
+        return;
+      }
+    } catch {
+      // If the room does not exist yet, LiveKit can throw. That is fine for new room creation.
     }
 
     const token = new AccessToken(apiKey, apiSecret, {
