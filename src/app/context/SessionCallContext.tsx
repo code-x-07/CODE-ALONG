@@ -16,6 +16,7 @@ export type CallParticipant = {
 type SessionCallContextValue = {
   isJoinModalOpen: boolean;
   activeRoomId: string | null;
+  pendingRoomId: string | null;
   displayName: string;
   participants: CallParticipant[];
   isConnected: boolean;
@@ -23,12 +24,16 @@ type SessionCallContextValue = {
   micEnabled: boolean;
   cameraEnabled: boolean;
   liveKitUrl: string | null;
+  shareUrl: string | null;
+  copiedShareLink: boolean;
   errorMessage: string | null;
-  openJoinModal: () => void;
+  openJoinModal: (roomId?: string) => void;
   closeJoinModal: () => void;
   createRoom: (name?: string) => Promise<void>;
   joinRoom: (roomId: string, name?: string) => Promise<void>;
   leaveRoom: () => void;
+  stageRoom: (roomId: string | null) => void;
+  copyShareLink: () => Promise<void>;
   setDisplayName: (name: string) => void;
   toggleMic: () => void;
   toggleCamera: () => void;
@@ -51,6 +56,33 @@ function generateRoomCode() {
 
 function normalizeRoomCode(roomId: string) {
   return roomId.trim().toUpperCase().replace(/[^A-Z0-9-]/g, "");
+}
+
+function buildArenaRoomLink(roomId: string) {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  return `${window.location.origin}/arena/${encodeURIComponent(roomId)}`;
+}
+
+function syncRoomLocation(roomId: string | null) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const currentUrl = new URL(window.location.href);
+
+  if (currentUrl.pathname.startsWith("/arena")) {
+    currentUrl.pathname = roomId ? `/arena/${encodeURIComponent(roomId)}` : "/arena";
+    currentUrl.searchParams.delete("room");
+  } else if (roomId) {
+    currentUrl.searchParams.set("room", roomId);
+  } else {
+    currentUrl.searchParams.delete("room");
+  }
+
+  window.history.replaceState({}, "", `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`);
 }
 
 function getParticipantName(participant: Participant, fallbackName: string) {
@@ -105,6 +137,7 @@ async function requestLiveKitToken(roomName: string, participantName: string) {
 export function SessionCallProvider({ children }: { children: React.ReactNode }) {
   const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
+  const [pendingRoomId, setPendingRoomId] = useState<string | null>(null);
   const [displayName, setDisplayNameState] = useState("You");
   const [participants, setParticipants] = useState<CallParticipant[]>([]);
   const [isConnected, setIsConnected] = useState(false);
@@ -112,6 +145,7 @@ export function SessionCallProvider({ children }: { children: React.ReactNode })
   const [cameraEnabled, setCameraEnabled] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [liveKitUrl, setLiveKitUrl] = useState<string | null>(null);
+  const [copiedShareLink, setCopiedShareLink] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const roomRef = useRef<Room | null>(null);
 
@@ -136,6 +170,11 @@ export function SessionCallProvider({ children }: { children: React.ReactNode })
     );
   }, []);
 
+  const stageRoom = useCallback((roomId: string | null) => {
+    const normalized = roomId ? normalizeRoomCode(roomId) : null;
+    setPendingRoomId(normalized);
+  }, []);
+
   const connectToRoom = useCallback(
     async (roomId: string, name?: string) => {
       const normalizedName = name?.trim() || displayName || "You";
@@ -145,8 +184,10 @@ export function SessionCallProvider({ children }: { children: React.ReactNode })
       setIsJoinModalOpen(false);
       setIsConnecting(true);
       setIsConnected(false);
+      setCopiedShareLink(false);
       setDisplayNameState(normalizedName);
       setActiveRoomId(normalizedRoomId);
+      setPendingRoomId(normalizedRoomId);
 
       cleanupRoom();
 
@@ -185,6 +226,7 @@ export function SessionCallProvider({ children }: { children: React.ReactNode })
         await nextRoom.connect(url, token);
         roomRef.current = nextRoom;
         setLiveKitUrl(url);
+        syncRoomLocation(normalizedRoomId);
 
         try {
           await nextRoom.localParticipant.setMicrophoneEnabled(true);
@@ -228,13 +270,29 @@ export function SessionCallProvider({ children }: { children: React.ReactNode })
   const leaveRoom = useCallback(() => {
     cleanupRoom();
     setActiveRoomId(null);
+    setPendingRoomId(null);
     setParticipants([]);
     setMicEnabled(false);
     setCameraEnabled(false);
     setIsJoinModalOpen(false);
     setLiveKitUrl(null);
+    setCopiedShareLink(false);
     setErrorMessage(null);
+    syncRoomLocation(null);
   }, [cleanupRoom]);
+
+  const copyShareLink = useCallback(async () => {
+    const roomId = activeRoomId || pendingRoomId;
+    const nextShareUrl = roomId ? buildArenaRoomLink(roomId) : null;
+
+    if (!nextShareUrl || typeof navigator === "undefined" || !navigator.clipboard) {
+      return;
+    }
+
+    await navigator.clipboard.writeText(nextShareUrl);
+    setCopiedShareLink(true);
+    window.setTimeout(() => setCopiedShareLink(false), 1800);
+  }, [activeRoomId, pendingRoomId]);
 
   const toggleMic = useCallback(() => {
     void (async () => {
@@ -268,10 +326,16 @@ export function SessionCallProvider({ children }: { children: React.ReactNode })
 
   useEffect(() => () => cleanupRoom(), [cleanupRoom]);
 
+  const shareUrl = useMemo(() => {
+    const roomId = activeRoomId || pendingRoomId;
+    return roomId ? buildArenaRoomLink(roomId) : null;
+  }, [activeRoomId, pendingRoomId]);
+
   const value = useMemo(
     () => ({
       isJoinModalOpen,
       activeRoomId,
+      pendingRoomId,
       displayName,
       participants,
       isConnected,
@@ -279,12 +343,21 @@ export function SessionCallProvider({ children }: { children: React.ReactNode })
       micEnabled,
       cameraEnabled,
       liveKitUrl,
+      shareUrl,
+      copiedShareLink,
       errorMessage,
-      openJoinModal: () => setIsJoinModalOpen(true),
+      openJoinModal: (roomId?: string) => {
+        if (roomId) {
+          setPendingRoomId(normalizeRoomCode(roomId));
+        }
+        setIsJoinModalOpen(true);
+      },
       closeJoinModal: () => setIsJoinModalOpen(false),
       createRoom,
       joinRoom,
       leaveRoom,
+      stageRoom,
+      copyShareLink,
       setDisplayName,
       toggleMic,
       toggleCamera,
@@ -292,6 +365,8 @@ export function SessionCallProvider({ children }: { children: React.ReactNode })
     [
       activeRoomId,
       cameraEnabled,
+      copiedShareLink,
+      copyShareLink,
       createRoom,
       displayName,
       errorMessage,
@@ -302,7 +377,10 @@ export function SessionCallProvider({ children }: { children: React.ReactNode })
       leaveRoom,
       liveKitUrl,
       micEnabled,
+      pendingRoomId,
       participants,
+      shareUrl,
+      stageRoom,
       setDisplayName,
       toggleCamera,
       toggleMic,

@@ -1,5 +1,6 @@
-import React from "react";
-import { Radio, Swords, TimerReset, UserPlus, Video } from "lucide-react";
+import React, { useEffect, useRef } from "react";
+import { Check, Copy, Link2, Radio, Swords, TimerReset, UserPlus, Video } from "lucide-react";
+import { useParams } from "react-router-dom";
 import { Sidebar } from "../components/Sidebar";
 import { CodeEditor } from "../components/CodeEditor";
 import { CallParticipantTile } from "../components/CallParticipantTile";
@@ -7,16 +8,42 @@ import { useWorkspace } from "../context/WorkspaceContext";
 import { useSessionCall } from "../context/SessionCallContext";
 
 export default function ArenaPage() {
+  const { roomId: routeRoomId } = useParams();
   const { arenaPlayerCode, setArenaPlayerCode } = useWorkspace();
   const {
     activeRoomId,
+    pendingRoomId,
     participants,
     isConnected,
     isConnecting,
     openJoinModal,
+    shareUrl,
+    copiedShareLink,
     errorMessage,
+    stageRoom,
+    copyShareLink,
   } = useSessionCall();
+  const openedFromUrlRef = useRef<string | null>(null);
   const remoteParticipants = participants.filter((participant) => !participant.isLocal);
+  const visibleParticipants = participants.slice(0, 2);
+  const roomLabel = activeRoomId || pendingRoomId || "Create a room to start the duel";
+
+  useEffect(() => {
+    const roomFromQuery =
+      typeof window !== "undefined" ? new URL(window.location.href).searchParams.get("room") : null;
+    const incomingRoom = routeRoomId || roomFromQuery;
+
+    if (!incomingRoom) {
+      return;
+    }
+
+    stageRoom(incomingRoom);
+
+    if (!isConnected && openedFromUrlRef.current !== incomingRoom) {
+      openedFromUrlRef.current = incomingRoom;
+      openJoinModal(incomingRoom);
+    }
+  }, [isConnected, openJoinModal, routeRoomId, stageRoom]);
 
   return (
     <div className="relative flex h-[calc(100vh-64px)] flex-1 overflow-hidden bg-transparent text-white">
@@ -31,10 +58,10 @@ export default function ArenaPage() {
                 Arena Match Room
               </div>
               <h1 className="mt-2 text-2xl font-black tracking-tight text-white">
-                {activeRoomId || "Create a room to start the duel"}
+                {roomLabel}
               </h1>
               <p className="mt-2 max-w-2xl text-sm text-white/50">
-                Join the same room code with your opponent so the video call, presence, and Arena session stay locked to one match.
+                Create a room to get a shareable Arena link. Your opponent can open that link or enter the room code to join the same live duel.
               </p>
             </div>
 
@@ -65,7 +92,7 @@ export default function ArenaPage() {
                 className="inline-flex items-center gap-2 rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-sm font-bold text-cyan-300 transition-colors hover:bg-cyan-400 hover:text-black"
               >
                 <UserPlus className="h-4 w-4" />
-                {activeRoomId ? "Switch Room" : "Join Arena Room"}
+                {activeRoomId || pendingRoomId ? "Open Room Panel" : "Join Arena Room"}
               </button>
             </div>
           </div>
@@ -106,6 +133,40 @@ export default function ArenaPage() {
           </section>
 
           <aside className="flex min-h-0 flex-col gap-4">
+            <section className="rounded-[28px] border border-white/10 bg-black/40 p-4 shadow-[0_0_30px_rgba(255,255,255,0.06)] backdrop-blur-xl">
+              <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-white/70">
+                <Link2 className="h-4 w-4" />
+                Arena Invite
+              </div>
+              <div className="mt-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
+                <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/40">Room Code</div>
+                <div className="mt-1 text-lg font-black text-white">{activeRoomId || pendingRoomId || "Not created yet"}</div>
+              </div>
+              <div className="mt-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
+                <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/40">Share Link</div>
+                <div className="mt-1 break-all text-sm text-white/70">
+                  {shareUrl || "Create or stage a room to generate a shareable Arena link."}
+                </div>
+              </div>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
+                <button
+                  onClick={() => void copyShareLink()}
+                  disabled={!shareUrl}
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-neon-green/30 bg-neon-green/10 px-4 py-3 text-sm font-bold text-neon-green transition-colors hover:bg-neon-green hover:text-black disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/[0.03] disabled:text-white/30"
+                >
+                  {copiedShareLink ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  {copiedShareLink ? "Copied Link" : "Copy Invite Link"}
+                </button>
+                <button
+                  onClick={() => openJoinModal(activeRoomId || pendingRoomId || undefined)}
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-sm font-bold text-cyan-300 transition-colors hover:bg-cyan-400 hover:text-black"
+                >
+                  <UserPlus className="h-4 w-4" />
+                  Share / Join
+                </button>
+              </div>
+            </section>
+
             <section className="flex min-h-[300px] flex-col rounded-[28px] border border-cyan-400/15 bg-black/40 p-4 shadow-[0_0_30px_rgba(34,211,238,0.08)] backdrop-blur-xl">
               <div className="mb-4 flex items-center justify-between">
                 <div>
@@ -124,9 +185,9 @@ export default function ArenaPage() {
                 </div>
               </div>
 
-              {participants.length > 0 ? (
+                  {visibleParticipants.length > 0 ? (
                 <div className="grid flex-1 auto-rows-fr gap-3 sm:grid-cols-2 xl:grid-cols-1">
-                  {participants.slice(0, 4).map((participant) => (
+                  {visibleParticipants.map((participant) => (
                     <CallParticipantTile key={participant.id} participant={participant} />
                   ))}
                 </div>
@@ -159,7 +220,7 @@ export default function ArenaPage() {
                 <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
                   <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/40">Opponent Slots</div>
                   <div className="mt-1 text-sm font-bold text-white">
-                    {remoteParticipants.length > 0 ? `${remoteParticipants.length} opponent(s) joined` : "Waiting for opponent"}
+                    {remoteParticipants.length > 0 ? `${Math.min(remoteParticipants.length, 1)} / 1 opponent joined` : "Waiting for opponent"}
                   </div>
                 </div>
                 <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
@@ -169,7 +230,7 @@ export default function ArenaPage() {
                   </div>
                 </div>
                 <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white/50">
-                  This page is now structured as a real room stage. Shared opponent editor sync and live match state can layer onto this room id next.
+                  Arena is now link-based. Person 1 creates the room, copies the invite link, and person 2 opens that link or types the code to join the exact same live room.
                 </div>
               </div>
             </section>

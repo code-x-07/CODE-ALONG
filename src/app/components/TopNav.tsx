@@ -14,7 +14,7 @@ export const TopNav = React.memo(function TopNav({ onProfileClick }: TopNavProps
   const location = useLocation();
   const currentPath = location.pathname.split("/")[1] || "collaborate";
   const { executionStatus, runMode } = useWorkspace();
-  const { activeRoomId, isConnected, openJoinModal } = useSessionCall();
+  const { activeRoomId, pendingRoomId, isConnected, openJoinModal } = useSessionCall();
   const canRun = currentPath === "collaborate" || currentPath === "arena";
   const isRunning = executionStatus === "running";
 
@@ -80,14 +80,14 @@ export const TopNav = React.memo(function TopNav({ onProfileClick }: TopNavProps
           onClick={openJoinModal}
           className={clsx(
             "relative overflow-hidden rounded-lg border px-4 py-2 text-sm font-bold transition-all",
-            isConnected
+            isConnected || pendingRoomId
               ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-300 hover:bg-cyan-400 hover:text-black"
               : "border-white/10 bg-white/5 text-white/70 hover:border-cyan-400/30 hover:text-cyan-300",
           )}
         >
           <span className="relative z-10 flex items-center gap-2">
             <Radio className="h-4 w-4" />
-            {isConnected && activeRoomId ? activeRoomId : "JOIN ROOM"}
+            {activeRoomId || pendingRoomId || "JOIN ROOM"}
           </span>
         </button>
 

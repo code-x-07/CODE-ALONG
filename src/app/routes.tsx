@@ -12,6 +12,7 @@ export const router = createBrowserRouter([
       { index: true, element: <Navigate to="/collaborate" replace /> },
       { path: "collaborate", Component: CollaboratePage },
       { path: "arena", Component: ArenaPage },
+      { path: "arena/:roomId", Component: ArenaPage },
       { path: "whiteboard", Component: WhiteboardPage },
     ],
   },

@@ -11,18 +11,19 @@ export const JoinRoomModal = React.memo(function JoinRoomModal() {
     joinRoom,
     displayName,
     activeRoomId,
+    pendingRoomId,
     isConnecting,
     errorMessage,
   } = useSessionCall();
   const [nameInput, setNameInput] = useState(displayName);
-  const [roomInput, setRoomInput] = useState(activeRoomId || "");
+  const [roomInput, setRoomInput] = useState(activeRoomId || pendingRoomId || "");
 
   useEffect(() => {
     if (isJoinModalOpen) {
       setNameInput(displayName);
-      setRoomInput(activeRoomId || "");
+      setRoomInput(activeRoomId || pendingRoomId || "");
     }
-  }, [activeRoomId, displayName, isJoinModalOpen]);
+  }, [activeRoomId, displayName, isJoinModalOpen, pendingRoomId]);
 
   async function handleCreateRoom() {
     await createRoom(nameInput);
@@ -63,7 +64,7 @@ export const JoinRoomModal = React.memo(function JoinRoomModal() {
                 </div>
                 <h2 className="text-2xl font-black tracking-tight text-white">Join by room code</h2>
                 <p className="mt-2 text-sm text-white/50">
-                  Use the same room code for Collaborate and Arena so the call follows the session.
+                  Create a room to get a shareable Arena link, or paste a room code to join an existing duel in real time.
                 </p>
               </div>
 
@@ -100,6 +101,14 @@ export const JoinRoomModal = React.memo(function JoinRoomModal() {
                   className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition-colors placeholder:text-white/20 focus:border-neon-green/50"
                 />
               </label>
+            </div>
+
+            <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-xs text-white/55">
+              Create room:
+              <span className="ml-1 text-white/80">we generate the room code and share link for you.</span>
+              <br />
+              Join room:
+              <span className="ml-1 text-white/80">enter the code from your friend or open their Arena link.</span>
             </div>
 
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
