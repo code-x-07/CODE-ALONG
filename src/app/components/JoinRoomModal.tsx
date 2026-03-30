@@ -54,7 +54,7 @@ export const JoinRoomModal = React.memo(function JoinRoomModal() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.98 }}
             transition={{ type: "spring", stiffness: 280, damping: 26 }}
-            className="fixed left-1/2 top-1/2 z-[60] w-[min(92vw,520px)] -translate-x-1/2 -translate-y-1/2 rounded-3xl border border-white/10 bg-black/85 p-7 shadow-[0_0_60px_rgba(0,0,0,0.7)] backdrop-blur-2xl"
+            className="fixed left-1/2 top-1/2 z-[60] max-h-[min(90vh,760px)] w-[min(92vw,520px)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-3xl border border-white/10 bg-black/85 p-7 shadow-[0_0_60px_rgba(0,0,0,0.7)] backdrop-blur-2xl custom-scrollbar"
           >
             <div className="mb-6 flex items-start justify-between gap-6">
               <div>

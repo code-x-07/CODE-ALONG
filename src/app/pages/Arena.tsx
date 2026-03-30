@@ -48,10 +48,10 @@ export default function ArenaPage() {
   }, [isConnected, openJoinModal, routeRoomId, stageRoom]);
 
   return (
-    <div className="relative flex h-[calc(100vh-64px)] flex-1 overflow-hidden bg-transparent text-white">
+    <div className="relative flex h-full min-h-0 flex-1 overflow-hidden bg-transparent text-white">
       <Sidebar />
 
-      <div className="relative flex flex-1 flex-col overflow-hidden bg-black/15">
+      <div className="relative flex min-h-0 flex-1 flex-col bg-black/15">
         <div className="border-b border-white/5 bg-black/25 px-5 py-4 backdrop-blur-xl">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
@@ -93,8 +93,9 @@ export default function ArenaPage() {
           )}
         </div>
 
-        <div className="grid flex-1 gap-4 overflow-hidden p-4 lg:grid-cols-[minmax(0,1.7fr)_380px]">
-          <section className="flex min-h-0 flex-col rounded-[28px] border border-neon-green/15 bg-black/40 p-4 shadow-[0_0_30px_rgba(57,255,20,0.08)] backdrop-blur-xl">
+        <div className="min-h-0 flex-1 overflow-y-auto p-4 custom-scrollbar">
+          <div className="grid min-h-full gap-4 lg:grid-cols-[minmax(0,1.7fr)_380px]">
+          <section className="flex min-h-[520px] flex-col rounded-[28px] border border-neon-green/15 bg-black/40 p-4 shadow-[0_0_30px_rgba(57,255,20,0.08)] backdrop-blur-xl lg:min-h-0">
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-neon-green">
@@ -111,7 +112,7 @@ export default function ArenaPage() {
               </div>
             </div>
 
-            <div className="min-h-0 flex-1 overflow-hidden rounded-[24px] border border-neon-green/20 bg-black/55">
+            <div className="h-[460px] overflow-hidden rounded-[24px] border border-neon-green/20 bg-black/55 lg:min-h-0 lg:flex-1">
               <CodeEditor
                 value={arenaPlayerCode}
                 onChange={setArenaPlayerCode}
@@ -121,7 +122,7 @@ export default function ArenaPage() {
             </div>
           </section>
 
-          <aside className="flex min-h-0 flex-col gap-4">
+          <aside className="flex min-h-0 flex-col gap-4 pb-4 lg:pb-0">
             <section className="rounded-[28px] border border-white/10 bg-black/40 p-4 shadow-[0_0_30px_rgba(255,255,255,0.06)] backdrop-blur-xl">
               <div className="flex items-center justify-between gap-3">
                 <div>
@@ -247,6 +248,7 @@ export default function ArenaPage() {
               )}
             </section>
           </aside>
+          </div>
         </div>
       </div>
     </div>
