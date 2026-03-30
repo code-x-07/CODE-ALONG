@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Check, Copy, Link2, Radio, Swords, TimerReset, UserPlus, Video } from "lucide-react";
 import { useParams } from "react-router-dom";
 import { Sidebar } from "../components/Sidebar";
@@ -24,11 +24,50 @@ export default function ArenaPage() {
     copyShareLink,
   } = useSessionCall();
   const openedFromUrlRef = useRef<string | null>(null);
+  const stageRef = useRef<HTMLDivElement | null>(null);
+  const draggingRef = useRef<{ pointerId: number; offsetX: number; offsetY: number } | null>(null);
   const remoteParticipants = participants.filter((participant) => !participant.isLocal);
   const visibleParticipants = participants.slice(0, 2);
   const roomLabel = activeRoomId || pendingRoomId || "Create a room to start the duel";
   const localParticipant = participants.find((participant) => participant.isLocal);
   const opponentParticipant = remoteParticipants[0];
+  const [selfPreviewPosition, setSelfPreviewPosition] = useState({ x: 16, y: 16 });
+
+  useEffect(() => {
+    function handlePointerMove(event: PointerEvent) {
+      const dragState = draggingRef.current;
+      const stage = stageRef.current;
+
+      if (!dragState || !stage) {
+        return;
+      }
+
+      const bounds = stage.getBoundingClientRect();
+      const previewWidth = 176;
+      const previewHeight = 120;
+      const nextX = event.clientX - bounds.left - dragState.offsetX;
+      const nextY = event.clientY - bounds.top - dragState.offsetY;
+
+      setSelfPreviewPosition({
+        x: Math.max(12, Math.min(nextX, bounds.width - previewWidth - 12)),
+        y: Math.max(12, Math.min(nextY, bounds.height - previewHeight - 12)),
+      });
+    }
+
+    function handlePointerUp(event: PointerEvent) {
+      if (draggingRef.current?.pointerId === event.pointerId) {
+        draggingRef.current = null;
+      }
+    }
+
+    window.addEventListener("pointermove", handlePointerMove);
+    window.addEventListener("pointerup", handlePointerUp);
+
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+    };
+  }, []);
 
   useEffect(() => {
     const roomFromQuery =
@@ -230,10 +269,47 @@ export default function ArenaPage() {
               </div>
 
               {visibleParticipants.length > 0 ? (
-                <div className="grid flex-1 auto-rows-fr gap-3">
-                  {visibleParticipants.map((participant) => (
-                    <CallParticipantTile key={participant.id} participant={participant} />
-                  ))}
+                <div ref={stageRef} className="relative flex-1 overflow-hidden rounded-[24px] border border-white/10 bg-black/20">
+                  {opponentParticipant ? (
+                    <CallParticipantTile
+                      key={opponentParticipant.id}
+                      participant={opponentParticipant}
+                      className="h-full rounded-none border-0"
+                    />
+                  ) : (
+                    <div className="flex h-full flex-col items-center justify-center px-6 text-center">
+                      <div className="text-lg font-black text-white">Waiting for opponent video</div>
+                      <div className="mt-2 max-w-sm text-sm text-white/45">
+                        Your room is live. Share the invite link or room code so the second player can join this Arena.
+                      </div>
+                    </div>
+                  )}
+
+                  {localParticipant && (
+                    <div
+                      className="absolute z-20 cursor-grab active:cursor-grabbing"
+                      style={{
+                        left: selfPreviewPosition.x,
+                        top: selfPreviewPosition.y,
+                        width: 176,
+                        height: 120,
+                      }}
+                      onPointerDown={(event) => {
+                        const bounds = event.currentTarget.getBoundingClientRect();
+                        draggingRef.current = {
+                          pointerId: event.pointerId,
+                          offsetX: event.clientX - bounds.left,
+                          offsetY: event.clientY - bounds.top,
+                        };
+                      }}
+                    >
+                      <CallParticipantTile
+                        participant={localParticipant}
+                        compact
+                        className="h-full rounded-2xl border border-neon-green/30 shadow-[0_0_30px_rgba(57,255,20,0.18)]"
+                      />
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="flex flex-1 flex-col items-center justify-center rounded-[24px] border border-dashed border-white/10 bg-white/[0.02] px-6 text-center">

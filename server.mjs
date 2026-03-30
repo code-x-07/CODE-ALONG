@@ -3,7 +3,7 @@ import { promises as fs } from "node:fs";
 import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { AccessToken } from "livekit-server-sdk";
+import { AccessToken, RoomServiceClient } from "livekit-server-sdk";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -135,6 +135,25 @@ async function createLiveKitToken(req, res) {
     if (!normalizedRoomName) {
       sendJson(res, 400, { message: "roomName is required." });
       return;
+    }
+
+    const serviceUrl = LIVEKIT_URL.replace(/^wss:/, "https:").replace(/^ws:/, "http:");
+    const roomService = new RoomServiceClient(serviceUrl, LIVEKIT_API_KEY, LIVEKIT_API_SECRET);
+
+    try {
+      const existingParticipants = await roomService.listParticipants(normalizedRoomName);
+
+      if (
+        existingParticipants.length >= 2 &&
+        !existingParticipants.some((participant) => participant.identity === normalizedParticipantName)
+      ) {
+        sendJson(res, 409, {
+          message: "This Arena room already has two players. Ask the host for a new room code.",
+        });
+        return;
+      }
+    } catch {
+      // New rooms can fail participant listing before the first join. That is fine.
     }
 
     const token = new AccessToken(LIVEKIT_API_KEY, LIVEKIT_API_SECRET, {
