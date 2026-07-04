@@ -135,6 +135,13 @@ async function resolveRuntimeVersion(language: RunnableLanguage) {
 }
 
 export async function executeCode({ language, sourceCode, fileName = "main.txt" }: ExecuteCodeArgs) {
+  // JavaScript runs instantly in an in-browser sandbox — no backend needed.
+  // Other languages go through the Piston proxy (requires PISTON_BASE_URL).
+  if (language === "javascript") {
+    const { runJavaScriptLocally } = await import("./localJsRunner");
+    return runJavaScriptLocally(sourceCode);
+  }
+
   const version = await resolveRuntimeVersion(language);
 
   const response = await fetch("/api/piston/execute", {

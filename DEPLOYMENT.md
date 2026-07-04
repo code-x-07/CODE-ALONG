@@ -1,64 +1,49 @@
 # Code Along Deployment
 
-This app is ready to deploy as a frontend + proxy server.
+Two supported paths: **Vercel** (recommended, easiest) or **Docker / any Node host**.
 
-## What You Still Need
+## Option A — Vercel (recommended)
 
-You need a reachable Piston server for code execution.
+1. Import the GitHub repo at [vercel.com/new](https://vercel.com/new). Vercel auto-detects Vite; the `api/` folder becomes serverless functions.
+2. In **Project Settings → Environment Variables**, add:
+   - `LIVEKIT_URL` — `wss://<project>.livekit.cloud`
+   - `LIVEKIT_API_KEY` / `LIVEKIT_API_SECRET`
+   - `PISTON_BASE_URL` *(optional — only for non-JavaScript execution)*
+3. Deploy. Done — rooms, video, multiplayer sync, and JS execution all work.
 
-- Local development: `PISTON_BASE_URL=http://localhost:2000`
-- Public deployment: `PISTON_BASE_URL=https://your-piston-server`
+### Getting LiveKit keys (free)
 
-This app does not require end users to install Docker or Piston.
+1. Sign up at [cloud.livekit.io](https://cloud.livekit.io) (generous free tier).
+2. Create a project → copy the **WebSocket URL** (`wss://…livekit.cloud`).
+3. Settings → Keys → create an API key/secret pair.
 
-## Production App Deploy
-
-1. Build the app image:
+## Option B — Docker / Node server
 
 ```bash
+npm run build
 docker build -t code-along-app .
-```
-
-2. Run the app container:
-
-```bash
-docker run \
-  -p 3000:3000 \
-  -e PORT=3000 \
-  -e PISTON_BASE_URL=https://your-piston-server \
-  -e EXECUTION_RATE_LIMIT_MAX_REQUESTS=30 \
-  -e EXECUTION_RATE_LIMIT_WINDOW_MS=60000 \
+docker run -p 3000:3000 \
+  -e LIVEKIT_URL=wss://your-project.livekit.cloud \
+  -e LIVEKIT_API_KEY=... \
+  -e LIVEKIT_API_SECRET=... \
+  -e PISTON_BASE_URL=https://your-piston-host/api/v2 \
   code-along-app
 ```
 
-3. Check health:
+Health check: `curl http://localhost:3000/health`
 
-```bash
-curl http://localhost:3000/health
-```
+## Code execution notes
 
-## Piston Deploy
+- **JavaScript needs no backend at all** — it runs in an in-browser sandboxed Web Worker (also powers Arena scoring).
+- Other languages proxy through `/api/piston/*` to a Piston instance:
+  - The public `emkc.org` API is **whitelist-only since Feb 2026**.
+  - Self-host instead: `git clone https://github.com/engineer-man/piston && cd piston && docker-compose up -d api`, install runtimes via the Piston CLI, then set `PISTON_BASE_URL=http://your-host:2000/api/v2`.
+- Keep the built-in execution rate limiting enabled (`EXECUTION_RATE_LIMIT_*` vars).
+- Never expose Piston directly to the browser — always go through the proxy.
 
-Deploy Piston separately using the official repository:
+## Production checklist
 
-```bash
-git clone https://github.com/engineer-man/piston
-cd piston
-docker-compose up -d api
-```
-
-Then install the runtimes you need from the official CLI.
-
-## Required Production Architecture
-
-- Browser users connect to your deployed Code Along app
-- Your app server proxies `/api/piston/*`
-- Your Piston server executes code
-
-## Important Limits
-
-- Add a reverse proxy such as Nginx, Caddy, or your platform load balancer
-- Keep rate limiting enabled
-- Do not expose Piston directly to the browser
-- Add auth before public launch
-- Add real collaboration and RTC backends before calling the app fully multi-user
+- [ ] LiveKit env vars set (rooms + video + sync)
+- [ ] `PISTON_BASE_URL` set if you want Python/Java/C++/… execution
+- [ ] Rate limiting left enabled
+- [ ] HTTPS termination (Vercel handles this automatically)

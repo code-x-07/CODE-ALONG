@@ -28,15 +28,9 @@ export default async function handler(req, res) {
     return;
   }
 
-  const pistonBaseUrl = process.env.PISTON_BASE_URL?.replace(/\/$/, "");
+  // Piston API root. Public instance: https://emkc.org/api/v2/piston
+  const pistonBaseUrl = (process.env.PISTON_BASE_URL || "https://emkc.org/api/v2/piston").replace(/\/$/, "");
   const pistonApiKey = process.env.PISTON_API_KEY?.trim();
-
-  if (!pistonBaseUrl) {
-    res.status(500).json({
-      message: "PISTON_BASE_URL is not configured in Vercel environment variables.",
-    });
-    return;
-  }
 
   try {
     const body = await readJsonBody(req);
@@ -49,7 +43,7 @@ export default async function handler(req, res) {
       headers.Authorization = `Bearer ${pistonApiKey}`;
     }
 
-    const upstream = await fetch(`${pistonBaseUrl}/api/v2/execute`, {
+    const upstream = await fetch(`${pistonBaseUrl}/execute`, {
       method: "POST",
       headers,
       body: JSON.stringify(body),

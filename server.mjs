@@ -9,7 +9,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const PORT = Number(process.env.PORT || 3000);
-const PISTON_BASE_URL = (process.env.PISTON_BASE_URL || "http://localhost:2000").replace(/\/$/, "");
+// Piston API root. Public instance: https://emkc.org/api/v2/piston
+// Self-hosted: http://localhost:2000/api/v2
+const PISTON_BASE_URL = (process.env.PISTON_BASE_URL || "https://emkc.org/api/v2/piston").replace(/\/$/, "");
 const PISTON_API_KEY = process.env.PISTON_API_KEY?.trim();
 const LIVEKIT_URL = process.env.LIVEKIT_URL?.trim();
 const LIVEKIT_API_KEY = process.env.LIVEKIT_API_KEY?.trim();
@@ -224,12 +226,12 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    await proxyToPiston(req, res, "/api/v2/execute");
+    await proxyToPiston(req, res, "/execute");
     return;
   }
 
   if (url.pathname === "/api/piston/runtimes" && req.method === "GET") {
-    await proxyToPiston(req, res, "/api/v2/runtimes");
+    await proxyToPiston(req, res, "/runtimes");
     return;
   }
 

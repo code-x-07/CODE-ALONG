@@ -23,6 +23,11 @@ export default function Layout() {
             backgroundSize: "18px 18px",
           }}
         />
+        {/* Local film-grain texture (served from /public, no external hotlink) */}
+        <div
+          className="absolute inset-0 opacity-[0.05] mix-blend-overlay"
+          style={{ backgroundImage: "url(/noise.svg)", backgroundSize: "256px 256px" }}
+        />
       </div>
 
       <div className="relative z-10 flex flex-col h-full">

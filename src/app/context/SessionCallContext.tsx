@@ -13,6 +13,11 @@ export type CallParticipant = {
   participant?: Participant;
 };
 
+export type DataMessageHandler = (payload: unknown, senderIdentity: string) => void;
+
+/** Topic used to notify subscribers that a new participant joined the room. */
+export const TOPIC_PARTICIPANT_JOINED = "system:participant-joined";
+
 type SessionCallContextValue = {
   isJoinModalOpen: boolean;
   activeRoomId: string | null;
@@ -37,6 +42,12 @@ type SessionCallContextValue = {
   setDisplayName: (name: string) => void;
   toggleMic: () => void;
   toggleCamera: () => void;
+  /** Publish a JSON payload to every peer in the room on a topic. Returns false when not connected. */
+  sendData: (topic: string, payload: unknown, reliable?: boolean) => boolean;
+  /** Subscribe to JSON payloads published by peers on a topic. Returns an unsubscribe function. */
+  subscribeData: (topic: string, handler: DataMessageHandler) => () => void;
+  /** Identity of the local participant inside the active room, or null when not connected. */
+  localIdentity: string | null;
 };
 
 const SessionCallContext = createContext<SessionCallContextValue | null>(null);
@@ -147,7 +158,45 @@ export function SessionCallProvider({ children }: { children: React.ReactNode })
   const [liveKitUrl, setLiveKitUrl] = useState<string | null>(null);
   const [copiedShareLink, setCopiedShareLink] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [localIdentity, setLocalIdentity] = useState<string | null>(null);
   const roomRef = useRef<Room | null>(null);
+  const dataHandlersRef = useRef<Map<string, Set<DataMessageHandler>>>(new Map());
+
+  const dispatchData = useCallback((topic: string, payload: unknown, senderIdentity: string) => {
+    dataHandlersRef.current.get(topic)?.forEach((handler) => {
+      try {
+        handler(payload, senderIdentity);
+      } catch {
+        // A misbehaving subscriber should never break the transport.
+      }
+    });
+  }, []);
+
+  const subscribeData = useCallback((topic: string, handler: DataMessageHandler) => {
+    const handlers = dataHandlersRef.current;
+
+    if (!handlers.has(topic)) {
+      handlers.set(topic, new Set());
+    }
+
+    handlers.get(topic)!.add(handler);
+
+    return () => {
+      handlers.get(topic)?.delete(handler);
+    };
+  }, []);
+
+  const sendData = useCallback((topic: string, payload: unknown, reliable = true) => {
+    const room = roomRef.current;
+
+    if (!room || room.state !== ConnectionState.Connected) {
+      return false;
+    }
+
+    const bytes = new TextEncoder().encode(JSON.stringify(payload));
+    void room.localParticipant.publishData(bytes, { reliable, topic });
+    return true;
+  }, []);
 
   const syncParticipants = useCallback((room: Room, fallbackLocalName: string) => {
     setParticipants(buildParticipants(room, fallbackLocalName));
@@ -206,7 +255,22 @@ export function SessionCallProvider({ children }: { children: React.ReactNode })
         nextRoom
           .on(RoomEvent.Connected, handleRoomUpdate)
           .on(RoomEvent.ConnectionStateChanged, handleRoomUpdate)
-          .on(RoomEvent.ParticipantConnected, handleRoomUpdate)
+          .on(RoomEvent.DataReceived, (payload, participant, _kind, topic) => {
+            if (!topic) {
+              return;
+            }
+
+            try {
+              const decoded = JSON.parse(new TextDecoder().decode(payload));
+              dispatchData(topic, decoded, participant?.identity || "unknown");
+            } catch {
+              // Ignore malformed peer payloads.
+            }
+          })
+          .on(RoomEvent.ParticipantConnected, (participant) => {
+            handleRoomUpdate();
+            dispatchData(TOPIC_PARTICIPANT_JOINED, { identity: participant.identity }, participant.identity);
+          })
           .on(RoomEvent.ParticipantDisconnected, handleRoomUpdate)
           .on(RoomEvent.LocalTrackPublished, handleRoomUpdate)
           .on(RoomEvent.LocalTrackUnpublished, handleRoomUpdate)
@@ -221,11 +285,13 @@ export function SessionCallProvider({ children }: { children: React.ReactNode })
             setParticipants([]);
             setMicEnabled(false);
             setCameraEnabled(false);
+            setLocalIdentity(null);
           });
 
         await nextRoom.connect(url, token);
         roomRef.current = nextRoom;
         setLiveKitUrl(url);
+        setLocalIdentity(nextRoom.localParticipant.identity);
         syncRoomLocation(normalizedRoomId);
 
         try {
@@ -255,6 +321,7 @@ export function SessionCallProvider({ children }: { children: React.ReactNode })
         setParticipants([]);
         setActiveRoomId(null);
         setLiveKitUrl(null);
+        setLocalIdentity(null);
         setErrorMessage(error instanceof Error ? error.message : "Failed to connect to the call room.");
       } finally {
         setIsConnecting(false);
@@ -269,6 +336,7 @@ export function SessionCallProvider({ children }: { children: React.ReactNode })
 
   const leaveRoom = useCallback(() => {
     cleanupRoom();
+    setLocalIdentity(null);
     setActiveRoomId(null);
     setPendingRoomId(null);
     setParticipants([]);
@@ -361,6 +429,9 @@ export function SessionCallProvider({ children }: { children: React.ReactNode })
       setDisplayName,
       toggleMic,
       toggleCamera,
+      sendData,
+      subscribeData,
+      localIdentity,
     }),
     [
       activeRoomId,
@@ -384,6 +455,9 @@ export function SessionCallProvider({ children }: { children: React.ReactNode })
       setDisplayName,
       toggleCamera,
       toggleMic,
+      sendData,
+      subscribeData,
+      localIdentity,
     ],
   );
 

@@ -14,7 +14,7 @@ export const TopNav = React.memo(function TopNav({ onProfileClick }: TopNavProps
   const location = useLocation();
   const currentPath = location.pathname.split("/")[1] || "collaborate";
   const { executionStatus, runMode } = useWorkspace();
-  const { activeRoomId, pendingRoomId, isConnected, openJoinModal } = useSessionCall();
+  const { activeRoomId, pendingRoomId, isConnected, openJoinModal, displayName } = useSessionCall();
   const canRun = currentPath === "collaborate" || currentPath === "arena";
   const isRunning = executionStatus === "running";
 
@@ -77,7 +77,7 @@ export const TopNav = React.memo(function TopNav({ onProfileClick }: TopNavProps
       {/* Right: Actions */}
       <div className="flex items-center gap-4">
         <button
-          onClick={openJoinModal}
+          onClick={() => openJoinModal()}
           className={clsx(
             "relative overflow-hidden rounded-lg border px-4 py-2 text-sm font-bold transition-all",
             isConnected || pendingRoomId
@@ -86,7 +86,14 @@ export const TopNav = React.memo(function TopNav({ onProfileClick }: TopNavProps
           )}
         >
           <span className="relative z-10 flex items-center gap-2">
-            <Radio className="h-4 w-4" />
+            {isConnected ? (
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-neon-green opacity-60" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-neon-green" />
+              </span>
+            ) : (
+              <Radio className="h-4 w-4" />
+            )}
             {activeRoomId || pendingRoomId || "JOIN ROOM"}
           </span>
         </button>
@@ -114,11 +121,10 @@ export const TopNav = React.memo(function TopNav({ onProfileClick }: TopNavProps
           className="relative w-10 h-10 rounded-full border border-white/10 overflow-hidden hover:border-neon-green transition-colors group"
         >
           <div className="absolute inset-0 bg-neon-green/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-          <img 
-            src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&q=80" 
-            alt="User Profile" 
-            className="w-full h-full object-cover"
-          />
+          {/* Local generated avatar — no external image dependency */}
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-neon-green/30 via-black to-cyan-400/30 font-mono text-sm font-black text-neon-green">
+            {displayName.slice(0, 2).toUpperCase()}
+          </div>
           <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-neon-green border-2 border-black rounded-full translate-x-1/4 translate-y-1/4" />
         </button>
       </div>

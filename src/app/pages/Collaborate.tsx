@@ -1,11 +1,12 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Sidebar } from '../components/Sidebar';
 import { CodeEditor } from '../components/CodeEditor';
 import { VideoBubbles } from '../components/VideoBubbles';
-import { Terminal, X, Maximize2, Minimize2, MoreHorizontal, Save } from 'lucide-react';
+import { Radio, Terminal, X, Maximize2, Minimize2, MoreHorizontal, Save } from 'lucide-react';
 import { motion } from 'motion/react';
 import clsx from 'clsx';
 import { useWorkspace } from '../context/WorkspaceContext';
+import { useSessionCall } from '../context/SessionCallContext';
 import { LANGUAGE_LABELS } from '../utils/executeCode';
 
 export default function CollaboratePage() {
@@ -22,6 +23,13 @@ export default function CollaboratePage() {
     executionStatus,
     appendTerminalEntry,
   } = useWorkspace();
+  const { isConnected, participants, openJoinModal } = useSessionCall();
+  const terminalEndRef = useRef<HTMLDivElement>(null);
+
+  // Keep the newest terminal output in view.
+  useEffect(() => {
+    terminalEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [terminalEntries, executionStatus]);
 
   const handleTerminalToggle = useCallback(() => {
     setIsTerminalOpen(prev => !prev);
@@ -79,6 +87,20 @@ export default function CollaboratePage() {
           })}
           
           <div className="ml-auto flex items-center gap-2">
+             {/* Live sync status */}
+             <button
+               onClick={() => openJoinModal()}
+               className={clsx(
+                 "flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] transition-colors",
+                 isConnected
+                   ? "border-neon-green/30 bg-neon-green/10 text-neon-green"
+                   : "border-white/10 bg-white/5 text-white/40 hover:text-white",
+               )}
+               title={isConnected ? "Edits sync to everyone in the room" : "Join a room to code together"}
+             >
+               <Radio className="h-3 w-3" />
+               {isConnected ? `Live Sync · ${participants.length}` : "Solo · Go Live"}
+             </button>
              <button onClick={handleSaveClick} className="p-1.5 rounded hover:bg-white/10 text-white/60 hover:text-white transition-colors">
                <Save className="w-4 h-4" />
              </button>
@@ -146,7 +168,7 @@ export default function CollaboratePage() {
              <div className="absolute inset-0 bg-black/50 pointer-events-none" /> {/* Darken background */}
              <div className="relative z-10 text-white/80">
                 <div className="mb-2 opacity-50 text-xs">Code Along execution console</div>
-                <div className="mb-4 opacity-50 text-xs">Requests are sent through your app server, not directly from the browser.</div>
+                <div className="mb-4 opacity-50 text-xs">JS executes in a sandboxed worker. Other languages run through the app server proxy.</div>
 
                 <div className="space-y-3">
                   {terminalEntries.map((entry) => (
@@ -170,6 +192,7 @@ export default function CollaboratePage() {
                       Sandbox is executing...
                     </div>
                   )}
+                  <div ref={terminalEndRef} />
                 </div>
 
                 <div className="mt-4 group flex items-center">

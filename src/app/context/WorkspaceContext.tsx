@@ -1,4 +1,5 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useSessionCall } from "./SessionCallContext";
 import {
   CODE_TEMPLATES,
   EditorLanguage,
@@ -67,8 +68,20 @@ type WorkspaceContextValue = {
 
 const WORKSPACE_STORAGE_KEY = "code-along.workspace.v1";
 
+// Data-channel topics for multiplayer workspace sync.
+const TOPIC_WS_HELLO = "ws:hello";
+const TOPIC_WS_STATE = "ws:state";
+const TOPIC_WS_FILE = "ws:file";
+const TOPIC_WS_TREE = "ws:tree";
+const FILE_BROADCAST_THROTTLE_MS = 120;
+const STATE_HANDSHAKE_TIMEOUT_MS = 3000;
+
+type TreeOpMessage =
+  | { op: "create"; folderId: string; node: WorkspaceNode }
+  | { op: "delete"; nodeId: string };
+
 const initialTerminalEntries: TerminalEntry[] = [
-  { id: 1, kind: "system", text: "Execution proxy ready. Runs are sent to /api/piston/execute." },
+  { id: 1, kind: "system", text: "JavaScript runs instantly in the in-browser sandbox. Other languages use the Piston proxy." },
   { id: 2, kind: "system", text: "Use the explorer to create files and folders. Runnable files use their actual language." },
 ];
 
@@ -89,27 +102,23 @@ function createInitialWorkspace(): StoredWorkspaceState {
     name: "index.js",
     language: "javascript",
     content: `// Welcome to Code Along!
-// Start collaborating with your team.
+// Hit RUN CODE to execute this instantly in the sandbox,
+// or hit JOIN ROOM to code together with live video.
 
-function initializeApp() {
-  const user = authenticate();
-  console.log("User logged in:", user.name);
-  
-  // Connect to websocket
-  const socket = new WebSocket("wss://api.codealong.io");
-  
-  socket.onopen = () => {
-    console.log("Connected to server");
-    startSession();
-  };
+function fibonacci(n) {
+  const sequence = [0, 1];
+
+  for (let i = 2; i < n; i++) {
+    sequence.push(sequence[i - 1] + sequence[i - 2]);
+  }
+
+  return sequence.slice(0, n);
 }
 
-function startSession() {
-  // Initialize collaboration session
-  console.log("Session started");
-}
+console.log("Fibonacci:", fibonacci(10).join(", "));
 
-initializeApp();`,
+const team = ["you", "your crew"];
+console.log(\`Ready to code along with \${team.join(" + ")}!\`);`,
   };
 
   const stylesFile: WorkspaceFile = {
@@ -290,6 +299,45 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const [isTerminalOpen, setIsTerminalOpen] = useState(true);
   const [terminalEntries, setTerminalEntries] = useState<TerminalEntry[]>(initialTerminalEntries);
   const [executionStatus, setExecutionStatus] = useState<ExecutionStatus>("idle");
+  const { isConnected, sendData, subscribeData } = useSessionCall();
+
+  // Refs so data-channel handlers always read the latest workspace without re-subscribing.
+  const workspaceRef = useRef<StoredWorkspaceState>({ root, activeFileId, openFileIds });
+  workspaceRef.current = { root, activeFileId, openFileIds };
+  const awaitingRemoteStateRef = useRef(false);
+  const pendingFileBroadcastRef = useRef<Map<string, string>>(new Map());
+  const fileBroadcastTimerRef = useRef<number | null>(null);
+
+  const queueFileBroadcast = useCallback(
+    (fileId: string, content: string) => {
+      pendingFileBroadcastRef.current.set(fileId, content);
+
+      if (fileBroadcastTimerRef.current !== null) {
+        return;
+      }
+
+      fileBroadcastTimerRef.current = window.setTimeout(() => {
+        fileBroadcastTimerRef.current = null;
+        const batch = Array.from(pendingFileBroadcastRef.current.entries());
+        pendingFileBroadcastRef.current.clear();
+
+        for (const [pendingFileId, pendingContent] of batch) {
+          sendData(TOPIC_WS_FILE, { fileId: pendingFileId, content: pendingContent });
+        }
+      }, FILE_BROADCAST_THROTTLE_MS);
+    },
+    [sendData],
+  );
+
+  // Flush guard: never leave a stale broadcast timer behind on unmount.
+  useEffect(
+    () => () => {
+      if (fileBroadcastTimerRef.current !== null) {
+        window.clearTimeout(fileBroadcastTimerRef.current);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -299,6 +347,105 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       );
     }
   }, [activeFileId, openFileIds, root]);
+
+  // Multiplayer workspace sync: handshake with peers and apply their edits live.
+  useEffect(() => {
+    if (!isConnected) {
+      return;
+    }
+
+    // Ask peers for the authoritative workspace; keep ours if nobody answers.
+    awaitingRemoteStateRef.current = true;
+    sendData(TOPIC_WS_HELLO, {});
+    const handshakeTimeout = window.setTimeout(() => {
+      awaitingRemoteStateRef.current = false;
+    }, STATE_HANDSHAKE_TIMEOUT_MS);
+
+    const unsubscribes = [
+      subscribeData(TOPIC_WS_HELLO, () => {
+        if (awaitingRemoteStateRef.current) {
+          return;
+        }
+
+        sendData(TOPIC_WS_STATE, workspaceRef.current);
+      }),
+      subscribeData(TOPIC_WS_STATE, (payload) => {
+        if (!awaitingRemoteStateRef.current) {
+          return;
+        }
+
+        const incoming = payload as StoredWorkspaceState;
+
+        if (!incoming || incoming.root?.type !== "folder") {
+          return;
+        }
+
+        awaitingRemoteStateRef.current = false;
+        const incomingFiles = collectFiles(incoming.root);
+        setWorkspaceState({
+          root: incoming.root,
+          activeFileId: incoming.activeFileId || incomingFiles[0]?.id || "",
+          openFileIds:
+            incoming.openFileIds?.length
+              ? incoming.openFileIds
+              : incomingFiles.slice(0, 1).map((file) => file.id),
+        });
+      }),
+      subscribeData(TOPIC_WS_FILE, (payload) => {
+        const { fileId, content } = (payload || {}) as { fileId?: string; content?: string };
+
+        if (!fileId || typeof content !== "string") {
+          return;
+        }
+
+        setWorkspaceState((current) => ({
+          ...current,
+          root: updateNode(current.root, fileId, (node) =>
+            !isFolder(node) ? { ...node, content } : node,
+          ) as WorkspaceFolder,
+        }));
+      }),
+      subscribeData(TOPIC_WS_TREE, (payload) => {
+        const message = payload as TreeOpMessage;
+
+        if (message?.op === "create" && message.node) {
+          setWorkspaceState((current) => {
+            if (findNodeById(current.root, message.node.id)) {
+              return current;
+            }
+
+            return { ...current, root: insertIntoFolder(current.root, message.folderId, message.node) };
+          });
+          return;
+        }
+
+        if (message?.op === "delete" && message.nodeId) {
+          setWorkspaceState((current) => {
+            const removedNode = findNodeById(current.root, message.nodeId);
+
+            if (!removedNode) {
+              return current;
+            }
+
+            const nextRoot = removeNode(current.root, message.nodeId);
+            const remainingFiles = collectFiles(nextRoot);
+            const removedFileIds = new Set(getNodeFileIds(removedNode));
+            const nextOpenFileIds = current.openFileIds.filter((fileId) => !removedFileIds.has(fileId));
+            const nextActiveFileId = removedFileIds.has(current.activeFileId)
+              ? nextOpenFileIds[0] || remainingFiles[0]?.id || current.activeFileId
+              : current.activeFileId;
+
+            return { root: nextRoot, activeFileId: nextActiveFileId, openFileIds: nextOpenFileIds };
+          });
+        }
+      }),
+    ];
+
+    return () => {
+      window.clearTimeout(handshakeTimeout);
+      unsubscribes.forEach((unsubscribe) => unsubscribe());
+    };
+  }, [isConnected, sendData, subscribeData]);
 
   const allFiles = useMemo(() => collectFiles(root), [root]);
   const activeFile = useMemo(() => {
@@ -357,7 +504,8 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         !isFolder(node) ? { ...node, content } : node,
       ) as WorkspaceFolder,
     }));
-  }, [activeFile]);
+    queueFileBroadcast(activeFile.id, content);
+  }, [activeFile, queueFileBroadcast]);
 
   const createFile = useCallback((folderId: string, fileName: string) => {
     const normalizedName = fileName.trim();
@@ -380,7 +528,8 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       activeFileId: newFile.id,
       openFileIds: [...current.openFileIds, newFile.id],
     }));
-  }, []);
+    sendData(TOPIC_WS_TREE, { op: "create", folderId, node: newFile } satisfies TreeOpMessage);
+  }, [sendData]);
 
   const createFolder = useCallback((folderId: string, folderName: string) => {
     const normalizedName = folderName.trim();
@@ -401,7 +550,8 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       root: insertIntoFolder(current.root, folderId, newFolder),
     }));
     setSelectedFolderId(newFolder.id);
-  }, []);
+    sendData(TOPIC_WS_TREE, { op: "create", folderId, node: newFolder } satisfies TreeOpMessage);
+  }, [sendData]);
 
   const deleteNode = useCallback((nodeId: string) => {
     if (nodeId === "root") {
@@ -425,7 +575,8 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       };
     });
     setSelectedFolderId("root");
-  }, []);
+    sendData(TOPIC_WS_TREE, { op: "delete", nodeId } satisfies TreeOpMessage);
+  }, [sendData]);
 
   const toggleFolderOpen = useCallback((folderId: string) => {
     setSelectedFolderId((current) => (current === folderId ? "root" : folderId));
