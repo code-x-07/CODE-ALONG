@@ -104,7 +104,7 @@ export const JoinRoomModal = React.memo(function JoinRoomModal() {
             </div>
 
             <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-xs text-white/55">
-              Only two players can be inside one Arena room.
+              Rooms hold up to 8 people. Arena duels pit you against the first opponent who joins.
             </div>
 
             <div className="mt-6 grid gap-3 sm:grid-cols-2">

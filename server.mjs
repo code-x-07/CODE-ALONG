@@ -141,16 +141,14 @@ async function createLiveKitToken(req, res) {
 
     const serviceUrl = LIVEKIT_URL.replace(/^wss:/, "https:").replace(/^ws:/, "http:");
     const roomService = new RoomServiceClient(serviceUrl, LIVEKIT_API_KEY, LIVEKIT_API_SECRET);
+    const maxParticipants = Number(process.env.MAX_ROOM_PARTICIPANTS || 8);
 
     try {
       const existingParticipants = await roomService.listParticipants(normalizedRoomName);
 
-      if (
-        existingParticipants.length >= 2 &&
-        !existingParticipants.some((participant) => participant.identity === normalizedParticipantName)
-      ) {
+      if (existingParticipants.length >= maxParticipants) {
         sendJson(res, 409, {
-          message: "This Arena room already has two players. Ask the host for a new room code.",
+          message: "This room is full. Ask the host for a new room code.",
         });
         return;
       }
@@ -158,8 +156,11 @@ async function createLiveKitToken(req, res) {
       // New rooms can fail participant listing before the first join. That is fine.
     }
 
+    // Identity must be unique per connection — LiveKit disconnects the previous
+    // session when a second participant connects with the same identity.
+    const identity = `${normalizedParticipantName}-${Math.random().toString(36).slice(2, 8)}`;
     const token = new AccessToken(LIVEKIT_API_KEY, LIVEKIT_API_SECRET, {
-      identity: normalizedParticipantName,
+      identity,
       name: normalizedParticipantName,
       ttl: "10m",
     });

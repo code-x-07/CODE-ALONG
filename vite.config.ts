@@ -53,8 +53,10 @@ function livekitDevApi(env: Record<string, string>): Plugin {
               return;
             }
 
+            // Unique identity per connection — same-identity joins kick the previous session.
+            const identity = `${normalizedParticipantName}-${Math.random().toString(36).slice(2, 8)}`;
             const token = new AccessToken(apiKey, apiSecret, {
-              identity: normalizedParticipantName,
+              identity,
               name: normalizedParticipantName,
               ttl: '10m',
             });

@@ -44,16 +44,14 @@ export default async function handler(req, res) {
 
     const serviceUrl = livekitUrl.replace(/^wss:/, "https:").replace(/^ws:/, "http:");
     const roomService = new RoomServiceClient(serviceUrl, apiKey, apiSecret);
+    const maxParticipants = Number(process.env.MAX_ROOM_PARTICIPANTS || 8);
 
     try {
       const existingParticipants = await roomService.listParticipants(normalizedRoomName);
 
-      if (
-        existingParticipants.length >= 2 &&
-        !existingParticipants.some((participant) => participant.identity === normalizedParticipantName)
-      ) {
+      if (existingParticipants.length >= maxParticipants) {
         res.status(409).json({
-          message: "This Arena room already has two players. Ask the host for a new room code.",
+          message: "This room is full. Ask the host for a new room code.",
         });
         return;
       }
@@ -61,8 +59,11 @@ export default async function handler(req, res) {
       // If the room does not exist yet, LiveKit can throw. That is fine for new room creation.
     }
 
+    // Identity must be unique per connection — LiveKit disconnects the previous
+    // session when a second participant connects with the same identity.
+    const identity = `${normalizedParticipantName}-${Math.random().toString(36).slice(2, 8)}`;
     const token = new AccessToken(apiKey, apiSecret, {
-      identity: normalizedParticipantName,
+      identity,
       name: normalizedParticipantName,
       ttl: "10m",
     });
