@@ -13,9 +13,9 @@ import {
   Trash2,
 } from "lucide-react";
 import clsx from "clsx";
-import React, { useCallback } from "react";
+import { useCallback } from "react";
 import { motion } from "motion/react";
-import { useWorkspace, WorkspaceFolder, WorkspaceNode } from "../context/WorkspaceContext";
+import { useWorkspace, WorkspaceNode } from "../context/WorkspaceContext";
 
 function FileNodeIcon({ fileName }: { fileName: string }) {
   if (fileName.endsWith(".json")) {

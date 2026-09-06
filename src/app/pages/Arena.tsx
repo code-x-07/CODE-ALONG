@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, Copy, Crown, Flag, Link2, Play, RotateCcw, Swords, Timer, UserPlus, Video } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useParams } from "react-router-dom";

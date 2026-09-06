@@ -101,7 +101,7 @@ function getParticipantName(participant: Participant, fallbackName: string) {
 }
 
 function buildParticipants(room: Room, fallbackLocalName: string): CallParticipant[] {
-  const liveParticipants = [room.localParticipant, ...Array.from(room.remoteParticipants.values())];
+  const liveParticipants: Participant[] = [room.localParticipant, ...Array.from(room.remoteParticipants.values())];
 
   return liveParticipants.map((participant, index) => {
     const publications = Array.from(participant.trackPublications.values());
