@@ -12,7 +12,7 @@ import {
   Trash2,
 } from "lucide-react";
 import clsx from "clsx";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useWorkspace, WorkspaceNode } from "../context/WorkspaceContext";
 
 type Draft = { kind: "file" | "folder" } | null;
@@ -36,6 +36,14 @@ function DraftInput({
   onCancel: () => void;
 }) {
   const [value, setValue] = useState("");
+  const done = useRef(false);
+
+  const finish = (action: "commit" | "cancel", name: string) => {
+    if (done.current) return;
+    done.current = true;
+    if (action === "commit" && name.trim()) onCommit(name);
+    else onCancel();
+  };
 
   return (
     <div className="flex items-center gap-2 rounded-control border border-accent/40 bg-accent-subtle px-2 py-1.5">
@@ -49,10 +57,10 @@ function DraftInput({
         value={value}
         placeholder={kind === "file" ? "main.py" : "src"}
         onChange={(e) => setValue(e.target.value)}
-        onBlur={() => (value.trim() ? onCommit(value) : onCancel())}
+        onBlur={() => finish(value.trim() ? "commit" : "cancel", value)}
         onKeyDown={(e) => {
-          if (e.key === "Enter") onCommit(value);
-          if (e.key === "Escape") onCancel();
+          if (e.key === "Enter") finish("commit", value);
+          if (e.key === "Escape") finish("cancel", value);
         }}
         className="w-full bg-transparent font-mono text-[13px] text-ink outline-none placeholder:text-ink-faint"
       />
