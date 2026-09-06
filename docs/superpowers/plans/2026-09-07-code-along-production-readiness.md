@@ -307,13 +307,31 @@ required, so typecheck now covers all of src/."
 - Consumes: Task 2's deletion (these packages existed only for the deleted components)
 - Produces: a dependency list matching actual imports; a measured bundle reduction
 
-- [ ] **Step 1: Record the baseline bundle size**
+> **Corrected expectation (controller ruling R7).** The original plan predicted
+> this task would cut the JS bundle from 977 kB to ~400 kB. **That was wrong.**
+> Measurement after Task 2 proves the removed components were never imported, so
+> their dependencies were never bundled: the built JS contains zero occurrences of
+> radix, mui, recharts, embla, cmdk, vaul, slick, react-dnd, popper, or
+> day-picker. Removing them **will not change the JS bundle**.
+>
+> What this task actually delivers: a smaller `node_modules` (444 MB / 181
+> packages today), faster installs, and a much smaller supply-chain surface.
+> Do not chase a JS bundle reduction — it will not come, and the task is not
+> failing when it does not appear.
+>
+> The CSS win already landed in Task 2: deleting those files stopped Tailwind
+> scanning them, cutting CSS from 129.11 kB to 63.49 kB (gzip 19.75 → 10.45).
+
+- [ ] **Step 1: Record the baseline**
 
 ```bash
 npm run build 2>&1 | grep -E "dist/assets.*\.(js|css)"
+du -sh node_modules
+ls node_modules | wc -l
 ```
 
-Record the numbers. Baseline before this work was `index.js 976.76 kB │ gzip: 282.98 kB`.
+Baseline after Task 2: JS `976.76 kB / gzip 282.98 kB`, CSS `63.49 kB / gzip
+10.45 kB`, node_modules `444M`, `181` packages. Record all four.
 
 - [ ] **Step 2: List what application code actually imports**
 
@@ -357,10 +375,17 @@ npm uninstall \
 
 - [ ] **Step 5: Verify and measure**
 
-Run: `npm run typecheck && npm run build`
-Expected: both pass. Record the new bundle numbers — target is roughly 400 kB raw / 130 kB gzip.
+Run: `npm run typecheck && npm run audit && npm run build`
+Expected: typecheck 0, build 0. The audit still exits 1 (474 violations) — that
+is the redesign work list for later tasks and is not this task's concern.
 
-**If the build fails on a missing module**, an import was missed in Step 2. Reinstall only that one package and note why it is needed.
+Record: JS bundle, CSS bundle, `du -sh node_modules`, `ls node_modules | wc -l`.
+**The JS bundle should be essentially unchanged** (~977 kB). node_modules and
+the package count should drop substantially. If the JS bundle does drop, note
+it — that would mean something removed *was* reachable, which is worth knowing.
+
+**If the build fails on a missing module**, an import was missed in Step 2.
+Reinstall only that one package and record why it is needed.
 
 - [ ] **Step 6: Commit**
 
@@ -371,7 +396,10 @@ git commit -m "Remove unused dependencies
 Drops ~35 packages that existed only for the deleted ui/ components:
 all Radix primitives, MUI, Emotion, and the unused widget libraries.
 
-Bundle: 977 kB -> <new> raw, 283 kB -> <new> gzipped."
+node_modules: 444M -> <new>, 181 -> <new> packages.
+JS bundle unchanged (~977 kB) as expected — these packages were never
+imported, so they were never bundled. The win is install time and
+supply-chain surface, not payload."
 ```
 
 Replace `<new>` with the measured values before committing.
@@ -1402,7 +1430,14 @@ npm run verify          # typecheck + audit + build, all must pass
 
 Measured outcomes to confirm against the spec:
 
-- [ ] Bundle reduced from 977 kB / 283 kB gzip toward ~400 kB / ~130 kB gzip
+- [ ] CSS bundle reduced 129.11 kB → 63.49 kB (delivered by Task 2)
+- [ ] `node_modules` and package count reduced (Task 3). **JS bundle stays
+  ~977 kB** — see ruling R7; the removed packages were never imported, so they
+  were never bundled.
+- [ ] **Deferred, not in scope:** the 977 kB single chunk exceeds Vite's 500 kB
+  warning and is dominated by `livekit-client` (8.6 MB installed). Code-splitting
+  it behind the room-join flow is a real win but is new scope — raise it at the
+  final review rather than expanding this plan.
 - [ ] `npm run audit` exits 0 — zero glow, zero backdrop-blur, zero neon tokens, zero raw opacity colors, zero `window.prompt`, one chrome height
 - [ ] `src/app/components/ui/` no longer exists
 - [ ] Production URL returns 200 logged-out
