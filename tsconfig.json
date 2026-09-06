@@ -20,6 +20,5 @@
     "paths": { "@/*": ["./src/*"] }
   },
   "include": ["src"],
-  "exclude": ["src/app/components/ui", "src/app/components/figma"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
