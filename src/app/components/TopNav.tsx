@@ -46,7 +46,7 @@ export const TopNav = React.memo(function TopNav({ onProfileClick }: TopNavProps
               className={clsx(
                 "flex items-center gap-2 rounded-control px-3 py-1.5 text-[13px] font-medium transition-colors",
                 isActive
-                  ? "bg-accent-subtle text-accent"
+                  ? "bg-accent-subtle text-accent ring-1 ring-inset ring-accent/25"
                   : "text-ink-muted hover:bg-raised hover:text-ink",
               )}
             >
@@ -94,7 +94,7 @@ export const TopNav = React.memo(function TopNav({ onProfileClick }: TopNavProps
 
         <button
           onClick={onProfileClick}
-          className="flex h-7 w-7 items-center justify-center rounded-full bg-raised font-mono text-[11px] font-semibold text-ink-muted transition-colors hover:text-ink"
+          className="flex h-7 w-7 items-center justify-center rounded-full bg-raised font-mono text-[11px] font-semibold text-ink-muted ring-1 ring-line-strong transition-colors hover:text-ink hover:ring-accent/40"
         >
           {displayName.slice(0, 2).toUpperCase()}
         </button>
