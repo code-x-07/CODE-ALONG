@@ -14,7 +14,7 @@ const CHROME_FILES = [
 const RULES = [
   {
     name: 'no-glow',
-    pattern: /shadow-\[0_0_/g,
+    pattern: /shadow-\[0_0_(?!0_)/g,
     message: 'Glow shadow. Use surface layering and hairline borders instead.',
   },
   {
@@ -24,7 +24,7 @@ const RULES = [
   },
   {
     name: 'no-neon',
-    pattern: /neon-(green|pink)/g,
+    pattern: /\bneon-[a-z]+/g,
     message: 'neon-* tokens are removed. Use accent / ink / line tokens.',
   },
   {
@@ -34,8 +34,8 @@ const RULES = [
   },
   {
     name: 'no-adhoc-palette',
-    pattern: /\b(?:bg|text|border)-(?:cyan|purple|indigo|emerald|rose|amber|sky|violet)-\d{2,3}/g,
-    message: 'Ad-hoc palette color. Use accent / ok / bad / warn tokens.',
+    pattern: /\b(?:bg|text|border|from|via|to|ring|fill|stroke|divide|outline|accent|caret|decoration|placeholder|shadow)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}\b/g,
+    message: 'Ad-hoc palette color. Use ground/surface/raised, ink*, line*, accent*, ok/bad/warn.',
   },
   {
     name: 'no-window-prompt',
