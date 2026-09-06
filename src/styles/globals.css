@@ -1,29 +1,12 @@
-@theme {
-  --color-neon-green: #39FF14;
-  --color-neon-pink: #FF1493;
-}
-
 @layer utilities {
-  .glass-panel {
-    @apply bg-white/10 backdrop-blur-md border border-white/10 shadow-lg;
-  }
-  
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-  
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
-  }
-  
+  .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--color-line-strong);
     border-radius: 4px;
   }
-  
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: var(--color-ink-faint);
   }
 
   .cursor-crosshair {
@@ -37,15 +20,6 @@
   50% { opacity: 0; }
 }
 
-@keyframes float {
-  0%, 100% { 
-    transform: translateY(0px) translateX(0px);
-  }
-  50% { 
-    transform: translateY(-20px) translateX(10px);
-  }
-}
-
 @keyframes fadeInScale {
   from {
     opacity: 0;
@@ -54,15 +28,6 @@
   to {
     opacity: 1;
     transform: scale(1);
-  }
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
   }
 }
 
