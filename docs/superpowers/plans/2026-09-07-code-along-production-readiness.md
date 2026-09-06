@@ -68,9 +68,16 @@ npm install -D typescript@5.7.3 @types/react@18.3.5 @types/react-dom@18.3.0 @typ
     "paths": { "@/*": ["./src/*"] }
   },
   "include": ["src"],
+  "exclude": ["src/app/components/ui", "src/app/components/figma"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
 ```
+
+The `exclude` is deliberate and temporary. All 46 files in `components/ui/` are
+a machine-generated dump that Task 2 deletes; typechecking them under `strict`
+would generate many errors in files about to disappear. **Task 2 removes this
+`exclude` key** when it deletes those directories, so coverage becomes complete
+exactly when it can be.
 
 - [ ] **Step 3: Create `tsconfig.node.json`**
 
@@ -227,6 +234,7 @@ The audit currently fails, by design: its output is the work list."
 **Files:**
 - Delete: `src/app/components/ui/` (all 46 `.tsx` files plus `utils.ts`, `use-mobile.ts`)
 - Delete: `src/app/components/figma/ImageWithFallback.tsx` (verify unused first)
+- Modify: `tsconfig.json` (remove the temporary `exclude` key)
 
 **Interfaces:**
 - Consumes: `npm run typecheck` from Task 1 — this is what proves nothing broke
@@ -258,12 +266,25 @@ git rm -r src/app/components/ui
 git rm -r src/app/components/figma   # only if Step 2 produced no output
 ```
 
-- [ ] **Step 4: Verify nothing broke**
+- [ ] **Step 4: Remove the temporary tsconfig exclusion**
+
+Task 1 excluded these directories from typechecking because they were about to
+be deleted. They are now gone, so delete this line from `tsconfig.json`:
+
+```json
+"exclude": ["src/app/components/ui", "src/app/components/figma"],
+```
+
+Typecheck coverage over `src/` is now complete.
+
+- [ ] **Step 5: Verify nothing broke**
 
 Run: `npm run typecheck && npm run build`
-Expected: both pass. The build output should show fewer modules transformed than the 2068 baseline.
+Expected: both pass. The build output should show fewer modules transformed than
+the 2068 baseline. If typecheck now reports errors in application code that the
+exclusion was masking, fix them — they are real.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
 git add -A
@@ -271,7 +292,8 @@ git commit -m "Remove 46 unused shadcn/ui components
 
 Scaffold residue from the original Figma Make export. Verified by grep
 that no application code imports any of them; typecheck and build pass
-unchanged."
+unchanged. Also drops the temporary tsconfig exclusion these directories
+required, so typecheck now covers all of src/."
 ```
 
 ---
@@ -1111,6 +1133,7 @@ empty state and surfaces LiveKit connection errors in the join modal."
 The app has 9 responsive utilities in total, so every mode breaks below desktop width.
 
 **Files:**
+- Modify: `src/app/layout.tsx` (owns the sidebar open/closed state)
 - Modify: `src/app/components/Sidebar.tsx`
 - Modify: `src/app/pages/Collaborate.tsx`
 - Modify: `src/app/pages/Arena.tsx`
@@ -1118,23 +1141,67 @@ The app has 9 responsive utilities in total, so every mode breaks below desktop 
 
 **Interfaces:**
 - Consumes: the token system and chrome contract
-- Produces: usable layouts at 768px and above
+- Produces: usable layouts at 768px and above. `Layout` owns
+  `isSidebarOpen: boolean`, passing `onToggleSidebar: () => void` to `TopNav`
+  and `isOpen: boolean` to `Sidebar`.
 
-- [ ] **Step 1: Collapse the sidebar below `lg`**
+- [ ] **Step 1: Lift sidebar state into `Layout`**
+
+The toggle button lives in `TopNav` but controls `Sidebar`, so the state belongs
+in their common parent (`src/app/layout.tsx`, rewritten in Task 5):
 
 ```tsx
-<aside className={clsx(
-  "hidden h-full w-[280px] shrink-0 select-none flex-col border-r border-line bg-surface lg:flex",
-  className,
-)}>
+const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+<TopNav
+  onProfileClick={() => setIsSocialOpen(true)}
+  onToggleSidebar={() => setIsSidebarOpen((open) => !open)}
+/>
 ```
 
-- [ ] **Step 2: Add a sidebar toggle in TopNav for small screens**
+`Sidebar` is rendered inside the page components, not `Layout`, so pass
+`isSidebarOpen` down through the `Outlet` context:
 
-A `PanelLeft` icon button, visible only below `lg`, toggling sidebar visibility
-via layout state.
+```tsx
+<main className="relative flex flex-1 overflow-hidden">
+  <Outlet context={{ isSidebarOpen }} />
+</main>
+```
 
-- [ ] **Step 3: Hide tab labels on narrow screens**
+Pages read it with `useOutletContext<{ isSidebarOpen: boolean }>()` and forward
+it to `Sidebar` as `isOpen`.
+
+- [ ] **Step 2: Collapse the sidebar below `lg`**
+
+`Sidebar` gains an `isOpen` prop. Below `lg` it shows only when toggled; at `lg`
+and above it is always visible:
+
+```tsx
+export function Sidebar({ className, isOpen = false }: { className?: string; isOpen?: boolean }) {
+  // ...
+  <aside className={clsx(
+    "h-full w-[280px] shrink-0 select-none flex-col border-r border-line bg-surface lg:flex",
+    isOpen ? "flex" : "hidden",
+    className,
+  )}>
+```
+
+- [ ] **Step 3: Add the toggle button in TopNav**
+
+`TopNav` gains `onToggleSidebar: () => void`. Render a `PanelLeft` icon button
+before the logo, hidden at `lg` and above:
+
+```tsx
+<button
+  onClick={onToggleSidebar}
+  className="rounded-control p-1.5 text-ink-muted transition-colors hover:bg-raised hover:text-ink lg:hidden"
+  title="Toggle explorer"
+>
+  <PanelLeft className="h-4 w-4" />
+</button>
+```
+
+- [ ] **Step 4: Hide tab labels on narrow screens**
 
 ```tsx
 <span className="hidden sm:inline">{tab.label}</span>
@@ -1142,21 +1209,21 @@ via layout state.
 
 Icons remain, so navigation stays usable.
 
-- [ ] **Step 4: Stack the Arena split vertically below `lg`**
+- [ ] **Step 5: Stack the Arena split vertically below `lg`**
 
 Change the side-by-side editor panes to `flex-col lg:flex-row`.
 
-- [ ] **Step 5: Verify at three widths**
+- [ ] **Step 6: Verify at three widths**
 
 Run: `npm run dev`, then check 1440px, 1024px, and 768px. No horizontal scroll;
 all three modes usable at each width.
 
-- [ ] **Step 6: Verify build**
+- [ ] **Step 7: Verify build**
 
 Run: `npm run verify`
 Expected: all three gates pass.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
 git add src/app
