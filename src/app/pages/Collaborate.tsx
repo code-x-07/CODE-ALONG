@@ -68,18 +68,15 @@ export default function CollaboratePage() {
               >
                 <span
                   className={clsx(
-                    "font-mono text-[11px]",
+                    "flex items-center gap-1 font-mono text-[11px]",
                     isActive ? "text-accent" : "text-ink-faint",
                   )}
-                  title={
-                    isRunnableLanguage(file.language) && !isRuntimeAvailable(file.language)
-                      ? "Runtime not configured on this deployment"
-                      : undefined
-                  }
                 >
                   {LANGUAGE_LABELS[file.language]}
                   {isRunnableLanguage(file.language) && !isRuntimeAvailable(file.language) && (
-                    <span className="ml-1 text-ink-faint">·</span>
+                    <span className="text-[10px] font-medium normal-case tracking-normal text-ink-faint">
+                      not configured
+                    </span>
                   )}
                 </span>
                 <span>{file.name}</span>

@@ -183,14 +183,17 @@ export async function executeCode({ language, sourceCode, fileName = "main.txt" 
   const data = (await response.json().catch(() => null)) as PistonExecuteResponse | null;
 
   if (!response.ok || !data) {
-    if (!isRuntimeAvailable(language)) {
-      throw new Error(
-        `${LANGUAGE_LABELS[language]} runtime is not configured on this deployment. ` +
-          `JavaScript runs in-browser and works without setup.`,
-      );
-    }
-
-    throw new Error(data?.message || "Error executing code in sandbox.");
+    // JavaScript returned early above, so every language that reaches here is a
+    // Piston language, and isRuntimeAvailable() is false for all of them — the
+    // old `data?.message` fallback was unreachable and has been removed.
+    // CAVEAT: if a real Piston backend is ever configured, this same branch
+    // fires on a transient 500 from that backend and would show "not configured"
+    // instead of a "try again" message. Acceptable today (no Piston instance
+    // exists); revisit isRuntimeAvailable() and this handler when one is added.
+    throw new Error(
+      `${LANGUAGE_LABELS[language]} runtime is not configured on this deployment. ` +
+        `JavaScript runs in-browser and works without setup.`,
+    );
   }
 
   if (data.compile && data.compile.code !== 0) {

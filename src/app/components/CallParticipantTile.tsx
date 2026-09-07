@@ -89,12 +89,12 @@ export const CallParticipantTile = React.memo(function CallParticipantTile({
 
         <div className="flex items-center gap-2">
           {participant.isMuted && (
-            <span className="rounded-full border border-line bg-surface p-2 text-ink-faint">
+            <span className="rounded-full bg-bad/10 p-2 text-bad">
               <MicOff className="h-3.5 w-3.5" />
             </span>
           )}
           {participant.isCameraOff && (
-            <span className="rounded-full border border-line bg-surface p-2 text-ink-faint">
+            <span className="rounded-full bg-bad/10 p-2 text-bad">
               <VideoOff className="h-3.5 w-3.5" />
             </span>
           )}

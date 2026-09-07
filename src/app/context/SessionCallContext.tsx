@@ -435,7 +435,14 @@ export function SessionCallProvider({ children }: { children: React.ReactNode })
         }
         setIsJoinModalOpen(true);
       },
-      closeJoinModal: () => setIsJoinModalOpen(false),
+      closeJoinModal: () => {
+        // Explicit user dismissal — clear any stale failure so reopening the
+        // lobby starts clean. A *failed* connect reopens the modal via its own
+        // setIsJoinModalOpen(true) with connectionError intact, so that flow is
+        // unaffected.
+        setIsJoinModalOpen(false);
+        setConnectionError(null);
+      },
       createRoom,
       joinRoom,
       leaveRoom,
