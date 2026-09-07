@@ -40,15 +40,15 @@ export default function CollaboratePage() {
   }, [activeFile?.name, appendTerminalEntry]);
 
   return (
-    <div className="flex flex-1 h-[calc(100vh-64px)] overflow-hidden bg-transparent text-white relative">
+    <div className="relative flex h-full min-h-0 flex-1 overflow-hidden bg-transparent text-ink">
       {/* Left Sidebar */}
       <Sidebar className="z-20" />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col h-full relative z-10">
-        
+      <div className="relative z-10 flex min-h-0 flex-1 flex-col">
+
         {/* Editor Tabs */}
-        <div className="h-10 bg-black/40 border-b border-white/5 flex items-center px-2 gap-2 backdrop-blur-sm">
+        <div className="flex h-chrome items-center gap-2 border-b border-line bg-surface px-2">
           {openFiles.map((file) => {
             const isActive = file.id === activeFileId;
 
@@ -57,13 +57,13 @@ export default function CollaboratePage() {
                 key={file.id}
                 onClick={() => setActiveFile(file.id)}
                 className={clsx(
-                  "flex items-center gap-2 px-3 py-1.5 rounded-t-lg border-t border-x text-sm font-medium relative group cursor-pointer",
+                  "group relative flex cursor-pointer items-center gap-2 rounded-control px-3 py-1.5 text-[13px] font-medium transition-colors",
                   isActive
-                    ? "bg-white/10 border-white/10 text-white"
-                    : "border-transparent text-white/40 hover:text-white/80",
+                    ? "bg-accent-subtle text-accent ring-1 ring-inset ring-accent/25"
+                    : "text-ink-muted hover:bg-raised hover:text-ink",
                 )}
               >
-                <span className={clsx(isActive ? "text-neon-green" : "text-cyan-300")}>
+                <span className={clsx(isActive ? "text-accent" : "text-ink-faint")}>
                   {LANGUAGE_LABELS[file.language]}
                 </span>
                 <span>{file.name}</span>
@@ -72,20 +72,14 @@ export default function CollaboratePage() {
                     event.stopPropagation();
                     closeFile(file.id);
                   }}
-                  className="rounded p-0.5 text-white/40 transition-colors hover:text-white"
+                  className="rounded p-0.5 text-ink-faint transition-colors hover:text-ink"
                 >
                   <X className="w-3 h-3" />
                 </button>
-                {isActive && (
-                  <>
-                    <div className="absolute bottom-[-1px] left-0 right-0 h-[1px] bg-[#1e1e1e]" />
-                    <div className="absolute top-0 left-0 right-0 h-[2px] bg-neon-green" />
-                  </>
-                )}
               </div>
             );
           })}
-          
+
           <div className="ml-auto flex items-center gap-2">
              {/* Live sync status */}
              <button
@@ -93,34 +87,34 @@ export default function CollaboratePage() {
                className={clsx(
                  "flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] transition-colors",
                  isConnected
-                   ? "border-neon-green/30 bg-neon-green/10 text-neon-green"
-                   : "border-white/10 bg-white/5 text-white/40 hover:text-white",
+                   ? "border-accent/40 bg-accent-subtle text-accent"
+                   : "border-line bg-raised text-ink-faint hover:text-ink",
                )}
                title={isConnected ? "Edits sync to everyone in the room" : "Join a room to code together"}
              >
                <Radio className="h-3 w-3" />
                {isConnected ? `Live Sync · ${participants.length}` : "Solo · Go Live"}
              </button>
-             <button onClick={handleSaveClick} className="p-1.5 rounded hover:bg-white/10 text-white/60 hover:text-white transition-colors">
+             <button onClick={handleSaveClick} className="p-1.5 rounded hover:bg-raised text-ink-muted hover:text-ink transition-colors">
                <Save className="w-4 h-4" />
              </button>
-             <button className="p-1.5 rounded hover:bg-white/10 text-white/60 hover:text-white transition-colors">
+             <button className="p-1.5 rounded hover:bg-raised text-ink-muted hover:text-ink transition-colors">
                <MoreHorizontal className="w-4 h-4" />
              </button>
           </div>
         </div>
 
         {/* Code Editor Area */}
-        <div className="flex-1 relative bg-[#0a0a0a]/80 backdrop-blur-sm">
+        <div className="relative flex-1 bg-ground">
           {activeFile ? (
-            <CodeEditor 
-              value={activeFile.content} 
-              onChange={updateActiveFileContent} 
-              language={activeFile.language} 
+            <CodeEditor
+              value={activeFile.content}
+              onChange={updateActiveFileContent}
+              language={activeFile.language}
               className="h-full"
             />
           ) : (
-            <div className="flex h-full items-center justify-center text-white/40">
+            <div className="flex h-full items-center justify-center text-ink-faint">
               Create a file in the explorer to start editing.
             </div>
           )}
@@ -134,39 +128,38 @@ export default function CollaboratePage() {
         </div>
 
         {/* Bottom Terminal Panel */}
-        <motion.div 
+        <motion.div
           initial={false}
           animate={{ height: isTerminalOpen ? 240 : 32 }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="border-t border-white/10 bg-black/80 backdrop-blur-xl flex flex-col shadow-[0_-5px_20px_rgba(0,0,0,0.5)] z-20"
+          className="z-20 flex flex-col border-t border-line bg-surface"
         >
           {/* Terminal Header */}
-          <div 
-            className="h-8 min-h-[32px] px-4 flex items-center justify-between border-b border-white/5 bg-white/5 cursor-pointer hover:bg-white/10 transition-colors"
+          <div
+            className="h-8 min-h-[32px] px-4 flex items-center justify-between border-b border-line bg-raised cursor-pointer hover:bg-raised transition-colors"
             onClick={handleTerminalToggle}
           >
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
-                <Terminal className="w-3 h-3 text-neon-green" />
-                <span className="text-xs font-bold text-neon-green tracking-wider">TERMINAL</span>
+                <Terminal className="w-3 h-3 text-accent" />
+                <span className="text-xs font-bold text-accent tracking-wider">TERMINAL</span>
               </div>
-              <div className="h-3 w-[1px] bg-white/10" />
+              <div className="h-3 w-[1px] bg-line" />
               <div className="flex items-center gap-2 opacity-50 text-xs">
                 <span>Output</span>
                 <span>Problems</span>
                 <span>Debug Console</span>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-2">
-              {isTerminalOpen ? <Minimize2 className="w-3 h-3 text-white/40" /> : <Maximize2 className="w-3 h-3 text-white/40" />}
+              {isTerminalOpen ? <Minimize2 className="w-3 h-3 text-ink-faint" /> : <Maximize2 className="w-3 h-3 text-ink-faint" />}
             </div>
           </div>
 
           {/* Terminal Content */}
-          <div className={clsx("flex-1 p-4 font-mono text-sm overflow-y-auto custom-scrollbar relative", !isTerminalOpen && "hidden")}>
-             <div className="absolute inset-0 bg-black/50 pointer-events-none" /> {/* Darken background */}
-             <div className="relative z-10 text-white/80">
+          <div className={clsx("flex-1 p-4 font-mono text-sm overflow-y-auto custom-scrollbar", !isTerminalOpen && "hidden")}>
+             <div className="text-ink-muted">
                 <div className="mb-2 opacity-50 text-xs">Code Along execution console</div>
                 <div className="mb-4 opacity-50 text-xs">JS executes in a sandboxed worker. Other languages run through the app server proxy.</div>
 
@@ -176,10 +169,10 @@ export default function CollaboratePage() {
                       key={entry.id}
                       className={clsx(
                         "whitespace-pre-wrap break-words",
-                        entry.kind === "command" && "text-neon-green",
-                        entry.kind === "output" && "text-white/90",
-                        entry.kind === "error" && "text-red-400",
-                        entry.kind === "system" && "text-white/50",
+                        entry.kind === "command" && "text-ok",
+                        entry.kind === "output" && "text-ink",
+                        entry.kind === "error" && "text-bad",
+                        entry.kind === "system" && "text-ink-muted",
                       )}
                     >
                       {entry.text}
@@ -187,8 +180,8 @@ export default function CollaboratePage() {
                   ))}
 
                   {executionStatus === "running" && (
-                    <div className="flex items-center gap-2 text-cyan-400">
-                      <span className="inline-block w-2 h-2 rounded-full bg-cyan-400" style={{ animation: 'pulse 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }} />
+                    <div className="flex items-center gap-2 text-accent">
+                      <span className="inline-block w-2 h-2 rounded-full bg-accent" style={{ animation: 'pulse 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }} />
                       Sandbox is executing...
                     </div>
                   )}
@@ -196,11 +189,11 @@ export default function CollaboratePage() {
                 </div>
 
                 <div className="mt-4 group flex items-center">
-                  <span className="text-neon-green">user@code-along</span>
-                  <span className="text-white/40">:</span>
-                  <span className="text-blue-400">~/workspace</span>
-                  <span className="text-white/40">$</span>
-                  <span className="ml-2 block w-2 h-4 bg-neon-green" style={{ animation: 'blink 1s step-end infinite' }} />
+                  <span className="text-ok">user@code-along</span>
+                  <span className="text-ink-faint">:</span>
+                  <span className="text-accent">~/workspace</span>
+                  <span className="text-ink-faint">$</span>
+                  <span className="ml-2 block w-2 h-4 bg-ok" style={{ animation: 'blink 1s step-end infinite' }} />
                 </div>
              </div>
           </div>

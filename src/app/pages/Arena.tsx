@@ -142,28 +142,28 @@ export default function ArenaPage() {
   }, [isConnected, openJoinModal, routeRoomId, stageRoom]);
 
   return (
-    <div className="relative flex h-full min-h-0 flex-1 overflow-hidden bg-transparent text-white">
+    <div className="relative flex h-full min-h-0 flex-1 overflow-hidden bg-transparent text-ink">
       <Sidebar />
 
-      <div className="relative flex min-h-0 flex-1 flex-col bg-black/15">
-        <div className="border-b border-white/5 bg-black/25 px-5 py-4 backdrop-blur-xl">
+      <div className="relative flex min-h-0 flex-1 flex-col bg-surface">
+        <div className="border-b border-line bg-surface px-5 py-4">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-neon-green">
+              <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-accent">
                 <Swords className="h-4 w-4" />
                 Arena Lobby
               </div>
-              <h1 className="mt-2 text-2xl font-black tracking-tight text-white">{roomLabel}</h1>
+              <h1 className="mt-2 text-2xl font-black tracking-tight text-ink">{roomLabel}</h1>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
               {match && (
                 <div
                   className={clsx(
-                    "flex items-center gap-2 rounded-2xl border px-4 py-3 font-mono text-lg font-black tabular-nums",
+                    "flex items-center gap-2 rounded-panel border px-4 py-3 font-mono text-lg font-black tabular-nums",
                     status === "active" && remainingMs < 30_000
-                      ? "border-red-500/40 bg-red-500/10 text-red-300"
-                      : "border-white/10 bg-white/[0.03] text-white",
+                      ? "border-bad/40 bg-bad/10 text-bad"
+                      : "border-line bg-raised text-ink",
                   )}
                 >
                   <Timer className="h-5 w-5" />
@@ -176,7 +176,7 @@ export default function ArenaPage() {
                   onClick={startMatch}
                   disabled={!isConnected || !opponentParticipant}
                   title={!isConnected || !opponentParticipant ? "Both players must be in the room to start" : undefined}
-                  className="inline-flex items-center gap-2 rounded-2xl border border-neon-green/30 bg-neon-green/10 px-4 py-3 text-sm font-bold text-neon-green transition-colors hover:bg-neon-green hover:text-black disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/[0.03] disabled:text-white/30"
+                  className="inline-flex items-center gap-2 rounded-panel border border-accent/40 bg-accent-subtle px-4 py-3 text-sm font-bold text-accent transition-colors hover:bg-accent hover:text-ground disabled:cursor-not-allowed disabled:border-line disabled:bg-raised disabled:text-ink-faint"
                 >
                   <Play className="h-4 w-4" />
                   {status === "finished" ? "Rematch" : "Start Match"}
@@ -185,7 +185,7 @@ export default function ArenaPage() {
                 <button
                   onClick={() => void submitSolution()}
                   disabled={status !== "active" || isSubmitting}
-                  className="inline-flex items-center gap-2 rounded-2xl border border-neon-pink/40 bg-neon-pink/10 px-4 py-3 text-sm font-bold text-neon-pink transition-colors hover:bg-neon-pink hover:text-black disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex items-center gap-2 rounded-panel border border-accent/40 bg-accent-subtle px-4 py-3 text-sm font-bold text-accent transition-colors hover:bg-accent hover:text-ground disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <Flag className="h-4 w-4" />
                   {isSubmitting ? "Judging..." : "Submit Solution"}
@@ -195,7 +195,7 @@ export default function ArenaPage() {
               {match && (
                 <button
                   onClick={resetMatch}
-                  className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-bold text-white/60 transition-colors hover:bg-white/10 hover:text-white"
+                  className="inline-flex items-center gap-2 rounded-panel border border-line bg-raised px-4 py-3 text-sm font-bold text-ink-muted transition-colors hover:bg-raised hover:text-ink"
                   title="Reset the match for both players"
                 >
                   <RotateCcw className="h-4 w-4" />
@@ -204,7 +204,7 @@ export default function ArenaPage() {
 
               <button
                 onClick={() => openJoinModal()}
-                className="inline-flex items-center gap-2 rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-sm font-bold text-cyan-300 transition-colors hover:bg-cyan-400 hover:text-black"
+                className="inline-flex items-center gap-2 rounded-panel border border-accent/40 bg-accent-subtle px-4 py-3 text-sm font-bold text-accent transition-colors hover:bg-accent hover:text-ground"
               >
                 <UserPlus className="h-4 w-4" />
                 {isConnected ? "Room" : "Create / Join"}
@@ -214,46 +214,46 @@ export default function ArenaPage() {
 
           {/* Match strip: challenge + timer bar + scores */}
           {match && challenge && (
-            <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
+            <div className="mt-4 rounded-panel border border-line bg-raised px-4 py-3">
               <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-black text-white">{challenge.title}</span>
+                    <span className="text-sm font-black text-ink">{challenge.title}</span>
                     <span
                       className={clsx(
                         "rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em]",
-                        challenge.difficulty === "easy" && "border-neon-green/30 text-neon-green",
-                        challenge.difficulty === "medium" && "border-amber-400/30 text-amber-300",
-                        challenge.difficulty === "hard" && "border-red-500/30 text-red-300",
+                        challenge.difficulty === "easy" && "border-accent/40 text-accent",
+                        challenge.difficulty === "medium" && "border-warn/40 text-warn",
+                        challenge.difficulty === "hard" && "border-bad/40 text-bad",
                       )}
                     >
                       {challenge.difficulty}
                     </span>
                   </div>
-                  <p className="mt-1 text-sm text-white/55">{challenge.prompt}</p>
+                  <p className="mt-1 text-sm text-ink-muted">{challenge.prompt}</p>
                 </div>
 
                 <div className="flex shrink-0 items-center gap-3">
-                  {[{ label: "You", score: myScore, accent: "text-neon-green", id: localIdentity }, { label: opponentParticipant?.name || "Opponent", score: opponentScore, accent: "text-cyan-300", id: opponentParticipant?.id }].map(
+                  {[{ label: "You", score: myScore, accent: "text-accent", id: localIdentity }, { label: opponentParticipant?.name || "Opponent", score: opponentScore, accent: "text-accent", id: opponentParticipant?.id }].map(
                     (player) => (
                       <div
                         key={player.label}
                         className={clsx(
-                          "rounded-xl border px-3 py-2 text-center",
+                          "rounded-panel border px-3 py-2 text-center",
                           winnerIdentity && winnerIdentity === player.id
-                            ? "border-neon-green/50 bg-neon-green/10"
-                            : "border-white/10 bg-black/30",
+                            ? "border-accent/40 bg-accent-subtle"
+                            : "border-line bg-surface",
                         )}
                       >
                         <div className={clsx("flex items-center justify-center gap-1 text-[10px] font-bold uppercase tracking-[0.18em]", player.accent)}>
                           {winnerIdentity && winnerIdentity === player.id && <Crown className="h-3 w-3" />}
                           {player.label}
                         </div>
-                        <div className="font-mono text-lg font-black tabular-nums text-white">
+                        <div className="font-mono text-lg font-black tabular-nums text-ink">
                           {player.score ? `${player.score.passed}/${player.score.total}` : "—"}
                         </div>
                         {player.score && (
-                          <div className="text-[10px] text-white/40">{formatClock(player.score.timeMs)} · {player.score.attempts} tries</div>
+                          <div className="text-[10px] text-ink-faint">{formatClock(player.score.timeMs)} · {player.score.attempts} tries</div>
                         )}
                       </div>
                     ),
@@ -262,11 +262,11 @@ export default function ArenaPage() {
               </div>
 
               {status === "active" && (
-                <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10">
+                <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-raised">
                   <div
                     className={clsx(
                       "h-full rounded-full transition-[width] duration-300",
-                      remainingMs < 30_000 ? "bg-red-500" : "bg-neon-green",
+                      remainingMs < 30_000 ? "bg-bad" : "bg-accent",
                     )}
                     style={{ width: `${Math.max(0, Math.min(1, timerRatio)) * 100}%` }}
                   />
@@ -274,7 +274,7 @@ export default function ArenaPage() {
               )}
 
               {submissionError && (
-                <div className="mt-3 rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+                <div className="mt-3 rounded-panel border border-bad/40 bg-bad/10 px-3 py-2 text-sm text-bad">
                   {submissionError}
                 </div>
               )}
@@ -285,17 +285,17 @@ export default function ArenaPage() {
                     <span
                       key={index}
                       className={clsx(
-                        "flex h-6 w-6 items-center justify-center rounded-md border font-mono text-[11px] font-bold",
+                        "flex h-6 w-6 items-center justify-center rounded-control border font-mono text-[11px] font-bold",
                         passed
-                          ? "border-neon-green/40 bg-neon-green/10 text-neon-green"
-                          : "border-red-500/40 bg-red-500/10 text-red-300",
+                          ? "border-ok/40 bg-ok/10 text-ok"
+                          : "border-bad/40 bg-bad/10 text-bad",
                       )}
                       title={`Test ${index + 1}: ${passed ? "passed" : "failed"}`}
                     >
                       {index + 1}
                     </span>
                   ))}
-                  <span className="ml-1 text-white/50">
+                  <span className="ml-1 text-ink-muted">
                     {lastSubmission.passed === lastSubmission.total ? "All tests green. Submitted!" : "Keep going — you can resubmit."}
                   </span>
                 </div>
@@ -304,7 +304,7 @@ export default function ArenaPage() {
           )}
 
           {errorMessage && (
-            <div className="mt-4 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+            <div className="mt-4 rounded-panel border border-bad/40 bg-bad/10 px-4 py-3 text-sm text-bad">
               {errorMessage}
             </div>
           )}
@@ -314,18 +314,18 @@ export default function ArenaPage() {
           <div className="grid min-h-full gap-4 lg:grid-cols-[minmax(0,1.7fr)_380px]">
             {/* Split-screen dual editors */}
             <section className="relative flex min-h-[520px] flex-col gap-4 lg:min-h-0">
-              <div className="flex min-h-0 flex-1 flex-col rounded-[28px] border border-neon-green/15 bg-black/40 p-4 shadow-[0_0_30px_rgba(57,255,20,0.08)] backdrop-blur-xl">
+              <div className="flex min-h-0 flex-1 flex-col rounded-panel border border-line bg-surface p-4">
                 <div className="mb-4 flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-neon-green">
-                    <span className="h-2 w-2 rounded-full bg-neon-green shadow-[0_0_10px_#39FF14]" />
+                  <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-accent">
+                    <span className="h-2 w-2 rounded-full bg-accent" />
                     Your Editor
                   </div>
-                  <div className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-white/50">
+                  <div className="rounded-full border border-line bg-raised px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-ink-muted">
                     JavaScript
                   </div>
                 </div>
 
-                <div className="relative min-h-[300px] flex-1 overflow-hidden rounded-[24px] border border-neon-green/20 bg-black/55">
+                <div className="relative min-h-[300px] flex-1 overflow-hidden rounded-panel border border-line bg-surface">
                   <CodeEditor
                     value={arenaPlayerCode}
                     onChange={setArenaPlayerCode}
@@ -341,17 +341,17 @@ export default function ArenaPage() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/70 backdrop-blur-sm"
+                        className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-surface"
                       >
                         <motion.div
                           key={Math.ceil(remainingMs / 1000)}
                           initial={{ scale: 2.2, opacity: 0 }}
                           animate={{ scale: 1, opacity: 1 }}
-                          className="font-mono text-8xl font-black text-neon-green drop-shadow-[0_0_30px_rgba(57,255,20,0.6)]"
+                          className="font-mono text-8xl font-black text-accent"
                         >
                           {Math.max(1, Math.ceil(remainingMs / 1000))}
                         </motion.div>
-                        <div className="mt-4 text-sm font-bold uppercase tracking-[0.3em] text-white/60">
+                        <div className="mt-4 text-sm font-bold uppercase tracking-[0.3em] text-ink-muted">
                           {challenge?.title}
                         </div>
                       </motion.div>
@@ -361,18 +361,18 @@ export default function ArenaPage() {
               </div>
 
               {/* Opponent live editor */}
-              <div className="flex min-h-0 flex-1 flex-col rounded-[28px] border border-cyan-400/15 bg-black/40 p-4 shadow-[0_0_30px_rgba(34,211,238,0.08)] backdrop-blur-xl">
+              <div className="flex min-h-0 flex-1 flex-col rounded-panel border border-line bg-surface p-4">
                 <div className="mb-4 flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-cyan-300">
-                    <span className={clsx("h-2 w-2 rounded-full", opponentParticipant ? "bg-cyan-400 shadow-[0_0_10px_#22d3ee]" : "bg-white/20")} />
+                  <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-accent">
+                    <span className={clsx("h-2 w-2 rounded-full", opponentParticipant ? "bg-accent" : "bg-ink-faint")} />
                     {opponentParticipant ? `${opponentParticipant.name} · Live` : "Opponent Editor"}
                   </div>
-                  <div className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-white/50">
+                  <div className="rounded-full border border-line bg-raised px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-ink-muted">
                     Read Only
                   </div>
                 </div>
 
-                <div className="min-h-[220px] flex-1 overflow-hidden rounded-[24px] border border-cyan-400/20 bg-black/55">
+                <div className="min-h-[220px] flex-1 overflow-hidden rounded-panel border border-line bg-surface">
                   {opponentLiveCode !== undefined ? (
                     <CodeEditor
                       value={opponentLiveCode}
@@ -382,7 +382,7 @@ export default function ArenaPage() {
                       readOnly
                     />
                   ) : (
-                    <div className="flex h-full flex-col items-center justify-center px-6 text-center text-sm text-white/40">
+                    <div className="flex h-full flex-col items-center justify-center px-6 text-center text-sm text-ink-faint">
                       {opponentParticipant
                         ? "Waiting for your opponent to start typing…"
                         : "When an opponent joins, their code streams here live."}
@@ -393,23 +393,23 @@ export default function ArenaPage() {
             </section>
 
             <aside className="flex min-h-0 flex-col gap-4 pb-4 lg:pb-0">
-              <section className="rounded-[28px] border border-white/10 bg-black/40 p-4 shadow-[0_0_30px_rgba(255,255,255,0.06)] backdrop-blur-xl">
+              <section className="rounded-panel border border-line bg-surface p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-white/70">
+                    <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-ink-muted">
                       <Link2 className="h-4 w-4" />
                       Room Access
                     </div>
-                    <div className="mt-1 text-sm text-white/50">One host, one opponent.</div>
+                    <div className="mt-1 text-sm text-ink-muted">One host, one opponent.</div>
                   </div>
-                  <div className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-white/50">
+                  <div className="rounded-full border border-line bg-raised px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-ink-muted">
                     {isConnecting ? "Connecting" : isConnected ? "Live" : "Offline"}
                   </div>
                 </div>
 
-                <div className="mt-4 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4">
-                  <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/40">Room Code</div>
-                  <div className="mt-2 text-2xl font-black tracking-[0.08em] text-white">
+                <div className="mt-4 rounded-panel border border-line bg-raised px-4 py-4">
+                  <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-ink-faint">Room Code</div>
+                  <div className="mt-2 text-2xl font-black tracking-[0.08em] text-ink">
                     {activeRoomId || pendingRoomId || "CREATE ROOM"}
                   </div>
                 </div>
@@ -418,7 +418,7 @@ export default function ArenaPage() {
                   <button
                     onClick={() => void copyShareLink()}
                     disabled={!shareUrl}
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl border border-neon-green/30 bg-neon-green/10 px-4 py-3 text-sm font-bold text-neon-green transition-colors hover:bg-neon-green hover:text-black disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/[0.03] disabled:text-white/30"
+                    className="inline-flex items-center justify-center gap-2 rounded-panel border border-accent/40 bg-accent-subtle px-4 py-3 text-sm font-bold text-accent transition-colors hover:bg-accent hover:text-ground disabled:cursor-not-allowed disabled:border-line disabled:bg-raised disabled:text-ink-faint"
                   >
                     {copiedShareLink ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                     {copiedShareLink ? "Copied Link" : "Copy Invite Link"}
@@ -426,24 +426,24 @@ export default function ArenaPage() {
                 </div>
               </section>
 
-              <section className="flex min-h-[300px] flex-1 flex-col rounded-[28px] border border-cyan-400/15 bg-black/40 p-4 shadow-[0_0_30px_rgba(34,211,238,0.08)] backdrop-blur-xl">
+              <section className="flex min-h-[300px] flex-1 flex-col rounded-panel border border-line bg-surface p-4">
                 <div className="mb-4 flex items-center justify-between">
                   <div>
-                    <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-cyan-300">
+                    <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-accent">
                       <Video className="h-4 w-4" />
                       Live Video Stage
                     </div>
-                    <div className="mt-1 text-sm text-white/45">
+                    <div className="mt-1 text-sm text-ink-muted">
                       {isConnected ? "Real-time room is live." : "Join a room to start the live call."}
                     </div>
                   </div>
-                  <div className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-white/50">
+                  <div className="rounded-full border border-line bg-raised px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-ink-muted">
                     {remoteParticipants.length > 0 ? "2 / 2" : localParticipant ? "1 / 2" : "0 / 2"}
                   </div>
                 </div>
 
                 {participants.length > 0 ? (
-                  <div ref={stageRef} className="relative flex-1 overflow-hidden rounded-[24px] border border-white/10 bg-black/20">
+                  <div ref={stageRef} className="relative flex-1 overflow-hidden rounded-panel border border-line bg-surface">
                     {opponentParticipant ? (
                       <CallParticipantTile
                         key={opponentParticipant.id}
@@ -452,8 +452,8 @@ export default function ArenaPage() {
                       />
                     ) : (
                       <div className="flex h-full flex-col items-center justify-center px-6 text-center">
-                        <div className="text-lg font-black text-white">Waiting for opponent video</div>
-                        <div className="mt-2 max-w-sm text-sm text-white/45">
+                        <div className="text-lg font-black text-ink">Waiting for opponent video</div>
+                        <div className="mt-2 max-w-sm text-sm text-ink-muted">
                           Your room is live. Share the invite link or room code so the second player can join.
                         </div>
                       </div>
@@ -480,18 +480,18 @@ export default function ArenaPage() {
                         <CallParticipantTile
                           participant={localParticipant}
                           compact
-                          className="h-full rounded-2xl border border-neon-green/30 shadow-[0_0_30px_rgba(57,255,20,0.18)]"
+                          className="h-full rounded-panel border border-accent/40"
                         />
                       </div>
                     )}
                   </div>
                 ) : (
-                  <div className="flex flex-1 flex-col items-center justify-center rounded-[24px] border border-dashed border-white/10 bg-white/[0.02] px-6 text-center">
-                    <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-cyan-400/20 bg-cyan-400/10">
-                      <Video className="h-7 w-7 text-cyan-300" />
+                  <div className="flex flex-1 flex-col items-center justify-center rounded-panel border border-dashed border-line bg-raised px-6 text-center">
+                    <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-panel border border-accent/40 bg-accent-subtle">
+                      <Video className="h-7 w-7 text-accent" />
                     </div>
-                    <div className="text-lg font-black text-white">No live room yet</div>
-                    <div className="mt-2 max-w-sm text-sm text-white/45">
+                    <div className="text-lg font-black text-ink">No live room yet</div>
+                    <div className="mt-2 max-w-sm text-sm text-ink-muted">
                       Click Create / Join, share the code or link, then let your opponent join. The live video appears here.
                     </div>
                   </div>

@@ -378,12 +378,12 @@ export default function WhiteboardPage() {
     activeTool === "select" ? (panStateRef.current ? "grabbing" : "grab") : activeTool === "text" ? "text" : "crosshair";
 
   return (
-    <div className="relative flex h-[calc(100vh-64px)] w-full flex-col overflow-hidden bg-transparent">
+    <div className="relative flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden bg-transparent">
       {/* Dot grid that follows the camera */}
       <div
         className="pointer-events-none absolute inset-0 opacity-20"
         style={{
-          backgroundImage: "radial-gradient(circle, #4ade80 1px, transparent 1px)",
+          backgroundImage: "radial-gradient(circle, #5B8DEF 1px, transparent 1px)",
           backgroundSize: `${24 * camera.scale}px ${24 * camera.scale}px`,
           backgroundPosition: `${camera.x}px ${camera.y}px`,
         }}
@@ -418,39 +418,39 @@ export default function WhiteboardPage() {
             }}
             onBlur={commitTextDraft}
             placeholder="Type, Enter to place"
-            className="absolute z-30 min-h-[40px] w-64 resize-none rounded-xl border border-white/20 bg-black/80 px-3 py-2 font-mono text-sm text-white shadow-[0_0_25px_rgba(0,0,0,0.6)] outline-none backdrop-blur-xl focus:border-neon-green/60"
+            className="absolute z-30 min-h-[40px] w-64 resize-none rounded-panel border border-line-strong bg-surface px-3 py-2 font-mono text-sm text-ink outline-none focus:border-accent/40"
             style={{ left: textDraft.screenX, top: textDraft.screenY, color: activeColor }}
           />
         )}
       </div>
 
       {/* Status chip */}
-      <div className="absolute right-6 top-6 z-40 flex items-center gap-2 rounded-full border border-white/10 bg-black/50 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.18em] backdrop-blur-xl">
+      <div className="absolute right-6 top-6 z-40 flex items-center gap-2 rounded-full border border-line bg-surface px-4 py-2 text-[11px] font-bold uppercase tracking-[0.18em]">
         <span
-          className={clsx("h-2 w-2 rounded-full", isConnected ? "bg-neon-green shadow-[0_0_10px_#39FF14]" : "bg-white/30")}
+          className={clsx("h-2 w-2 rounded-full", isConnected ? "bg-ok" : "bg-ink-faint")}
         />
         {isConnected ? `Live · ${participants.length} on board` : "Local board · join a room to sync"}
       </div>
 
       {/* Bottom Floating Toolbar */}
       <div className="absolute bottom-8 left-1/2 z-50 -translate-x-1/2">
-        <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-black/50 px-2 py-2 shadow-[0_0_30px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+        <div className="flex items-center gap-2 rounded-panel border border-line bg-surface px-2 py-2">
           {tools.map((tool) => (
             <button
               key={tool.id}
               onClick={() => setActiveTool(tool.id)}
               className={clsx(
-                "group relative overflow-hidden rounded-xl p-3 transition-all",
+                "group relative overflow-hidden rounded-panel p-3 transition-all",
                 activeTool === tool.id
-                  ? "text-black shadow-[0_0_15px_rgba(57,255,20,0.4)]"
-                  : "text-white/40 hover:bg-white/5 hover:text-white",
+                  ? "text-ground"
+                  : "text-ink-faint hover:bg-raised hover:text-ink",
               )}
               title={tool.label}
             >
               {activeTool === tool.id && (
                 <motion.div
                   layoutId="active-tool-bg"
-                  className="absolute inset-0 bg-neon-green"
+                  className="absolute inset-0 bg-accent"
                   transition={{ type: "spring", stiffness: 300, damping: 25 }}
                 />
               )}
@@ -460,7 +460,7 @@ export default function WhiteboardPage() {
             </button>
           ))}
 
-          <div className="mx-2 h-8 w-[1px] bg-white/10" />
+          <div className="mx-2 h-8 w-[1px] bg-line" />
 
           <div className="flex gap-2 px-1">
             {COLORS.map((color) => (
@@ -469,15 +469,15 @@ export default function WhiteboardPage() {
                 onClick={() => setActiveColor(color)}
                 className={clsx(
                   "h-6 w-6 rounded-full border-2 transition-transform hover:scale-110",
-                  activeColor === color ? "scale-110 border-white" : "border-transparent",
+                  activeColor === color ? "scale-110 border-ink" : "border-transparent",
                 )}
-                style={{ backgroundColor: color, boxShadow: activeColor === color ? `0 0 12px ${color}` : undefined }}
+                style={{ backgroundColor: color }}
                 title={color}
               />
             ))}
           </div>
 
-          <div className="mx-2 h-8 w-[1px] bg-white/10" />
+          <div className="mx-2 h-8 w-[1px] bg-line" />
 
           <div className="flex items-center gap-1 px-1">
             {PEN_SIZES.map((size) => (
@@ -485,8 +485,8 @@ export default function WhiteboardPage() {
                 key={size}
                 onClick={() => setPenSize(size)}
                 className={clsx(
-                  "flex h-8 w-8 items-center justify-center rounded-lg transition-colors",
-                  penSize === size ? "bg-white/15 text-white" : "text-white/40 hover:text-white",
+                  "flex h-8 w-8 items-center justify-center rounded-control transition-colors",
+                  penSize === size ? "bg-raised text-ink" : "text-ink-faint hover:text-ink",
                 )}
                 title={`Stroke ${size}px`}
               >
@@ -495,32 +495,32 @@ export default function WhiteboardPage() {
             ))}
           </div>
 
-          <div className="mx-2 h-8 w-[1px] bg-white/10" />
+          <div className="mx-2 h-8 w-[1px] bg-line" />
 
           <button
             onClick={() => zoomBy(1.2)}
-            className="rounded-xl p-3 text-white/40 transition-colors hover:bg-white/5 hover:text-white"
+            className="rounded-panel p-3 text-ink-faint transition-colors hover:bg-raised hover:text-ink"
             title="Zoom in"
           >
             <ZoomIn className="h-5 w-5" />
           </button>
           <button
             onClick={() => zoomBy(1 / 1.2)}
-            className="rounded-xl p-3 text-white/40 transition-colors hover:bg-white/5 hover:text-white"
+            className="rounded-panel p-3 text-ink-faint transition-colors hover:bg-raised hover:text-ink"
             title="Zoom out"
           >
             <ZoomOut className="h-5 w-5" />
           </button>
           <button
             onClick={() => undoLastOwnOp(author)}
-            className="rounded-xl p-3 text-white/40 transition-colors hover:bg-white/5 hover:text-white"
+            className="rounded-panel p-3 text-ink-faint transition-colors hover:bg-raised hover:text-ink"
             title="Undo my last action"
           >
             <Undo2 className="h-5 w-5" />
           </button>
           <button
             onClick={() => clearBoard(author)}
-            className="rounded-xl p-3 text-white/40 transition-colors hover:bg-red-500/20 hover:text-red-400"
+            className="rounded-panel p-3 text-ink-faint transition-colors hover:bg-bad/10 hover:text-bad"
             title="Clear board"
           >
             <Trash2 className="h-5 w-5" />
