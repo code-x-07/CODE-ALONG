@@ -81,7 +81,7 @@ shadcn light/dark token block currently there.
 ```
 ground   #0B0D10     surface  #131720     raised   #1A1F2A
 border   #242A35     strong   #333B49
-text     #E8EAED     muted    #9BA3B0     faint    #646C7A
+text     #E8EAED     muted    #9BA3B0     faint    #7C8595
 accent   #5B8DEF     hover    #7BA4F5     subtle   rgba(91,141,239,0.12)
 success  #4ADE80     error    #F87171     warning  #FBBF24
 ```
