@@ -79,6 +79,16 @@ export function isRunnableLanguage(language: EditorLanguage): language is Runnab
   return RUNNABLE_LANGUAGES.has(language as RunnableLanguage);
 }
 
+/**
+ * JS runs in an in-browser Web Worker and always works. Every other language
+ * proxies to a Piston instance, and the public emkc.org endpoint went
+ * whitelist-only in February 2026 — so on deployments without a dedicated
+ * Piston backend those runtimes are simply unavailable.
+ */
+export function isRuntimeAvailable(language: string): boolean {
+  return language === "javascript";
+}
+
 type PistonExecuteResponse = {
   message?: string;
   compile?: {
@@ -168,7 +178,16 @@ export async function executeCode({ language, sourceCode, fileName = "main.txt" 
     }),
   });
 
-  const data = (await response.json()) as PistonExecuteResponse;
+  // A deployment without a configured Piston proxy answers with HTML (a 404
+  // page or the SPA shell), not JSON — treat that the same as a non-OK response.
+  const data = (await response.json().catch(() => null)) as PistonExecuteResponse | null;
+
+  if (!data) {
+    throw new Error(
+      `${LANGUAGE_LABELS[language]} runtime is not configured on this deployment. ` +
+        `JavaScript runs in-browser and works without setup.`,
+    );
+  }
 
   if (!response.ok) {
     throw new Error(data.message || "Error executing code in sandbox.");
@@ -193,14 +212,14 @@ export async function executeCode({ language, sourceCode, fileName = "main.txt" 
 
 // Starter templates so the editor isn't empty when a user switches languages
 export const CODE_TEMPLATES: Record<string, string> = {
-  javascript: 'console.log("Welcome to Aura-Vine IDE!");',
-  python: 'print("Welcome to Aura-Vine IDE!")',
-  java: `public class Main {\n  public static void main(String[] args) {\n    System.out.println("Welcome to Aura-Vine IDE!");\n  }\n}`,
-  cpp: `#include <iostream>\n\nint main() {\n    std::cout << "Welcome to Aura-Vine IDE!" << std::endl;\n    return 0;\n}`,
-  c: `#include <stdio.h>\n\nint main() {\n    printf("Welcome to Aura-Vine IDE!\\n");\n    return 0;\n}`,
-  rust: `fn main() {\n    println!("Welcome to Aura-Vine IDE!");\n}`,
-  go: `package main\n\nimport "fmt"\n\nfunc main() {\n    fmt.Println("Welcome to Aura-Vine IDE!")\n}`,
-  ruby: `puts "Welcome to Aura-Vine IDE!"`,
-  php: `<?php\n\necho "Welcome to Aura-Vine IDE!";\n?>`,
-  csharp: `using System;\n\nclass Program {\n  static void Main() {\n    Console.WriteLine("Welcome to Aura-Vine IDE!");\n  }\n}`
+  javascript: 'console.log("Welcome to Code Along!");',
+  python: 'print("Welcome to Code Along!")',
+  java: `public class Main {\n  public static void main(String[] args) {\n    System.out.println("Welcome to Code Along!");\n  }\n}`,
+  cpp: `#include <iostream>\n\nint main() {\n    std::cout << "Welcome to Code Along!" << std::endl;\n    return 0;\n}`,
+  c: `#include <stdio.h>\n\nint main() {\n    printf("Welcome to Code Along!\\n");\n    return 0;\n}`,
+  rust: `fn main() {\n    println!("Welcome to Code Along!");\n}`,
+  go: `package main\n\nimport "fmt"\n\nfunc main() {\n    fmt.Println("Welcome to Code Along!")\n}`,
+  ruby: `puts "Welcome to Code Along!"`,
+  php: `<?php\n\necho "Welcome to Code Along!";\n?>`,
+  csharp: `using System;\n\nclass Program {\n  static void Main() {\n    Console.WriteLine("Welcome to Code Along!");\n  }\n}`
 };

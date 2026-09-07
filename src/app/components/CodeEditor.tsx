@@ -55,7 +55,7 @@ export const CodeEditor = React.memo(function CodeEditor({ value, onChange, lang
   return (
     <div className={clsx("relative w-full h-full flex font-mono text-sm group", className)}>
       {/* Line Numbers */}
-      <div className="flex flex-col items-end px-4 py-6 text-right select-none text-white/20 bg-black/20 border-r border-white/5 font-mono text-sm leading-[1.5]">
+      <div className="flex flex-col items-end px-4 py-6 text-right select-none text-ink-faint bg-raised border-r border-line font-mono text-sm leading-[1.5]">
         {lineNumbers.map((num) => (
           <div key={num} className="h-[21px]">{num}</div>
         ))}

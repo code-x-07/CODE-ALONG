@@ -1,9 +1,8 @@
-/* PrismJS Cyberpunk Theme for Code Along */
+/* PrismJS syntax theme for Code Along — aligned to the design tokens */
 code[class*="language-"],
 pre[class*="language-"] {
-	color: #e0e0e0;
+	color: var(--color-ink);
 	background: none;
-	text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
 	font-family: 'Fira Code', 'JetBrains Mono', Consolas, Monaco, monospace;
 	font-size: 14px;
 	text-align: left;
@@ -39,12 +38,12 @@ pre[class*="language-"] {
 .token.prolog,
 .token.doctype,
 .token.cdata {
-	color: #6c6c6c;
-    font-style: italic;
+	color: var(--color-ink-faint);
+	font-style: italic;
 }
 
 .token.punctuation {
-	color: #e0e0e0;
+	color: var(--color-ink);
 }
 
 .namespace {
@@ -56,13 +55,12 @@ pre[class*="language-"] {
 .token.constant,
 .token.symbol,
 .token.deleted {
-	color: #FF1493; /* Neon Pink */
-    text-shadow: 0 0 5px rgba(255, 20, 147, 0.3);
+	color: var(--color-warn);
 }
 
 .token.boolean,
 .token.number {
-	color: #bd93f9; /* Purple */
+	color: var(--color-warn);
 }
 
 .token.selector,
@@ -71,8 +69,7 @@ pre[class*="language-"] {
 .token.char,
 .token.builtin,
 .token.inserted {
-	color: #39FF14; /* Neon Green */
-    text-shadow: 0 0 5px rgba(57, 255, 20, 0.3);
+	color: var(--color-ok);
 }
 
 .token.operator,
@@ -81,25 +78,23 @@ pre[class*="language-"] {
 .language-css .token.string,
 .style .token.string,
 .token.variable {
-	color: #f8f8f2;
+	color: var(--color-ink);
 }
 
 .token.atrule,
 .token.attr-value,
 .token.function,
 .token.class-name {
-	color: #00FFFF; /* Cyan */
-    text-shadow: 0 0 5px rgba(0, 255, 255, 0.3);
+	color: var(--color-accent);
 }
 
 .token.keyword {
-	color: #FF00FF; /* Magenta */
-    text-shadow: 0 0 5px rgba(255, 0, 255, 0.3);
+	color: var(--color-accent);
 }
 
 .token.regex,
 .token.important {
-	color: #ffb86c;
+	color: var(--color-warn);
 }
 
 .token.important,
@@ -117,6 +112,6 @@ pre[class*="language-"] {
 
 /* Selection */
 ::selection {
-    background: rgba(57, 255, 20, 0.2);
-    color: inherit;
+	background: var(--color-accent-subtle);
+	color: inherit;
 }

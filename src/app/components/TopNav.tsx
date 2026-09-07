@@ -1,6 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Zap, Play, Code2, Swords, PenTool, Radio } from "lucide-react";
-import { motion } from "motion/react";
+import { Zap, Play, Code2, Swords, PenTool, Radio, PanelLeft } from "lucide-react";
 import clsx from "clsx";
 import React from "react";
 import { useWorkspace } from "../context/WorkspaceContext";
@@ -8,9 +7,10 @@ import { useSessionCall } from "../context/SessionCallContext";
 
 interface TopNavProps {
   onProfileClick: () => void;
+  onToggleSidebar: () => void;
 }
 
-export const TopNav = React.memo(function TopNav({ onProfileClick }: TopNavProps) {
+export const TopNav = React.memo(function TopNav({ onProfileClick, onToggleSidebar }: TopNavProps) {
   const location = useLocation();
   const currentPath = location.pathname.split("/")[1] || "collaborate";
   const { executionStatus, runMode } = useWorkspace();
@@ -25,27 +25,28 @@ export const TopNav = React.memo(function TopNav({ onProfileClick }: TopNavProps
   ];
 
   return (
-    <nav className="h-16 w-full flex items-center justify-between px-6 border-b border-white/5 bg-black/40 backdrop-blur-xl z-50 relative">
+    <nav className="relative z-50 flex h-chrome w-full items-center justify-between border-b border-line bg-surface px-4">
       {/* Left: Logo */}
-      <div className="flex items-center gap-3 group cursor-pointer">
-        <div className="relative">
-          <div className="absolute inset-0 bg-neon-green/50 blur-[15px] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-          <div className="relative w-10 h-10 bg-black border border-white/10 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(57,255,20,0.15)] group-hover:border-neon-green/50 transition-colors">
-            <Zap className="w-5 h-5 text-neon-green fill-neon-green" style={{ animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }} />
-          </div>
+      <div className="flex items-center gap-2.5">
+        {currentPath !== "whiteboard" && (
+          <button
+            onClick={onToggleSidebar}
+            className="rounded-control p-1.5 text-ink-muted transition-colors hover:bg-raised hover:text-ink lg:hidden"
+            title="Toggle explorer"
+          >
+            <PanelLeft className="h-4 w-4" />
+          </button>
+        )}
+        <div className="flex h-7 w-7 items-center justify-center rounded-control bg-accent">
+          <Zap className="h-4 w-4 text-ground" fill="currentColor" />
         </div>
-        <div className="flex flex-col">
-          <span className="text-lg font-black text-white tracking-widest uppercase font-mono leading-none">
-            Code<span className="text-neon-green">Along</span>
-          </span>
-          <span className="text-[0.6rem] text-white/40 font-mono tracking-[0.2em] uppercase">
-            v2.0.4 stable
-          </span>
-        </div>
+        <span className="text-[15px] font-semibold tracking-tight text-ink">
+          Code Along
+        </span>
       </div>
 
       {/* Center: Tabs */}
-      <div className="flex items-center bg-black/40 rounded-full p-1 border border-white/5 shadow-inner">
+      <div className="flex items-center gap-1">
         {tabs.map((tab) => {
           const isActive = currentPath === tab.id;
           return (
@@ -53,48 +54,37 @@ export const TopNav = React.memo(function TopNav({ onProfileClick }: TopNavProps
               key={tab.id}
               to={tab.path}
               className={clsx(
-                "relative px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 flex items-center gap-2 z-10 overflow-hidden group",
-                isActive ? "text-black font-bold" : "text-white/60 hover:text-white hover:bg-white/5"
+                "flex items-center gap-2 rounded-control px-3 py-1.5 text-[13px] font-medium transition-colors",
+                isActive
+                  ? "bg-accent-subtle text-accent ring-1 ring-inset ring-accent/25"
+                  : "text-ink-muted hover:bg-raised hover:text-ink",
               )}
             >
-              {isActive && (
-                <motion.div
-                  layoutId="active-tab"
-                  className="absolute inset-0 bg-neon-green shadow-[0_0_20px_rgba(57,255,20,0.6)]"
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                  style={{ zIndex: -1 }}
-                />
-              )}
-              <span className="relative z-10 flex items-center gap-2">
-                {tab.icon}
-                {tab.label}
-              </span>
+              {tab.icon}
+              <span className="hidden sm:inline">{tab.label}</span>
             </Link>
           );
         })}
       </div>
 
       {/* Right: Actions */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2">
         <button
           onClick={() => openJoinModal()}
           className={clsx(
-            "relative overflow-hidden rounded-lg border px-4 py-2 text-sm font-bold transition-all",
+            "flex items-center gap-2 rounded-control border px-3 py-1.5 text-[13px] font-medium transition-colors",
             isConnected || pendingRoomId
-              ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-300 hover:bg-cyan-400 hover:text-black"
-              : "border-white/10 bg-white/5 text-white/70 hover:border-cyan-400/30 hover:text-cyan-300",
+              ? "border-accent/40 bg-accent-subtle text-accent"
+              : "border-line-strong text-ink-muted hover:border-accent/40 hover:text-ink",
           )}
         >
-          <span className="relative z-10 flex items-center gap-2">
-            {isConnected ? (
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-neon-green opacity-60" />
-                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-neon-green" />
-              </span>
-            ) : (
-              <Radio className="h-4 w-4" />
-            )}
-            {activeRoomId || pendingRoomId || "JOIN ROOM"}
+          {isConnected ? (
+            <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+          ) : (
+            <Radio className="h-3.5 w-3.5" />
+          )}
+          <span className={clsx(activeRoomId && "font-mono")}>
+            {activeRoomId || pendingRoomId || "Join room"}
           </span>
         </button>
 
@@ -102,30 +92,21 @@ export const TopNav = React.memo(function TopNav({ onProfileClick }: TopNavProps
           onClick={() => void runMode(currentPath as "collaborate" | "arena" | "whiteboard")}
           disabled={!canRun || isRunning}
           className={clsx(
-            "relative overflow-hidden group px-6 py-2 border rounded-lg font-bold text-sm transition-all shadow-[0_0_10px_rgba(57,255,20,0.1)]",
+            "flex items-center gap-2 rounded-control px-3 py-1.5 text-[13px] font-medium transition-colors",
             canRun && !isRunning
-              ? "bg-neon-green/10 border-neon-green/30 text-neon-green hover:bg-neon-green hover:text-black hover:shadow-[0_0_20px_rgba(57,255,20,0.4)]"
-              : "bg-white/5 border-white/10 text-white/30 cursor-not-allowed",
+              ? "bg-accent text-ground hover:bg-accent-hover"
+              : "cursor-not-allowed bg-raised text-ink-faint",
           )}
         >
-          <span className="relative z-10 flex items-center gap-2">
-            <Play className="w-4 h-4 fill-current" />
-            {isRunning ? "RUNNING..." : "RUN CODE"}
-          </span>
+          <Play className="h-3.5 w-3.5" fill="currentColor" />
+          {isRunning ? "Running…" : "Run"}
         </button>
-        
-        <div className="h-8 w-[1px] bg-white/10 mx-2" />
 
-        <button 
+        <button
           onClick={onProfileClick}
-          className="relative w-10 h-10 rounded-full border border-white/10 overflow-hidden hover:border-neon-green transition-colors group"
+          className="flex h-7 w-7 items-center justify-center rounded-full bg-raised font-mono text-[11px] font-semibold text-ink-muted ring-1 ring-line-strong transition-colors hover:text-ink hover:ring-accent/40"
         >
-          <div className="absolute inset-0 bg-neon-green/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-          {/* Local generated avatar — no external image dependency */}
-          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-neon-green/30 via-black to-cyan-400/30 font-mono text-sm font-black text-neon-green">
-            {displayName.slice(0, 2).toUpperCase()}
-          </div>
-          <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-neon-green border-2 border-black rounded-full translate-x-1/4 translate-y-1/4" />
+          {displayName.slice(0, 2).toUpperCase()}
         </button>
       </div>
     </nav>
