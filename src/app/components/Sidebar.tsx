@@ -149,7 +149,7 @@ function TreeNode({
   );
 }
 
-export function Sidebar({ className }: { className?: string }) {
+export function Sidebar({ className, isOpen = false }: { className?: string; isOpen?: boolean }) {
   const { root, selectedFolderId, createFile, createFolder } = useWorkspace();
   const [draft, setDraft] = useState<Draft>(null);
 
@@ -166,7 +166,13 @@ export function Sidebar({ className }: { className?: string }) {
   );
 
   return (
-    <aside className={clsx("flex h-full w-[280px] shrink-0 select-none flex-col border-r border-line bg-surface", className)}>
+    <aside
+      className={clsx(
+        "h-full w-[280px] shrink-0 select-none flex-col border-r border-line bg-surface lg:flex",
+        isOpen ? "flex" : "hidden",
+        className,
+      )}
+    >
       <div className="flex h-chrome items-center justify-between border-b border-line px-3">
         <span className="text-[11px] font-semibold uppercase tracking-wider text-ink-faint">
           Explorer

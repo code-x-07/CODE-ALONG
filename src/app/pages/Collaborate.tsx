@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { Sidebar } from '../components/Sidebar';
+import type { LayoutOutletContext } from '../layout';
 import { CodeEditor } from '../components/CodeEditor';
 import { VideoBubbles } from '../components/VideoBubbles';
 import { Radio, Terminal, X, Maximize2, Minimize2, MoreHorizontal, Save, FileCode2 } from 'lucide-react';
@@ -24,6 +26,7 @@ export default function CollaboratePage() {
     appendTerminalEntry,
   } = useWorkspace();
   const { isConnected, participants, openJoinModal } = useSessionCall();
+  const { isSidebarOpen } = useOutletContext<LayoutOutletContext>();
   const terminalEndRef = useRef<HTMLDivElement>(null);
 
   // Keep the newest terminal output in view.
@@ -42,7 +45,7 @@ export default function CollaboratePage() {
   return (
     <div className="relative flex h-full min-h-0 flex-1 overflow-hidden bg-transparent text-ink">
       {/* Left Sidebar */}
-      <Sidebar className="z-20" />
+      <Sidebar className="z-20" isOpen={isSidebarOpen} />
 
       {/* Main Content Area */}
       <div className="relative z-10 flex min-h-0 flex-1 flex-col">

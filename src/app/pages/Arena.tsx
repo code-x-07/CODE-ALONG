@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Check, Copy, Crown, Flag, Link2, Play, RotateCcw, Swords, Timer, UserPlus, Video } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useParams } from "react-router-dom";
+import { useOutletContext, useParams } from "react-router-dom";
 import clsx from "clsx";
 import { Sidebar } from "../components/Sidebar";
+import type { LayoutOutletContext } from "../layout";
 import { CodeEditor } from "../components/CodeEditor";
 import { CallParticipantTile } from "../components/CallParticipantTile";
 import { useWorkspace } from "../context/WorkspaceContext";
@@ -20,6 +21,7 @@ function formatClock(ms: number) {
 
 export default function ArenaPage() {
   const { roomId: routeRoomId } = useParams();
+  const { isSidebarOpen } = useOutletContext<LayoutOutletContext>();
   const { arenaPlayerCode, setArenaPlayerCode } = useWorkspace();
   const {
     activeRoomId,
@@ -143,7 +145,7 @@ export default function ArenaPage() {
 
   return (
     <div className="relative flex h-full min-h-0 flex-1 overflow-hidden bg-transparent text-ink">
-      <Sidebar />
+      <Sidebar isOpen={isSidebarOpen} />
 
       <div className="relative flex min-h-0 flex-1 flex-col bg-surface">
         <div className="border-b border-line bg-surface px-5 py-4">

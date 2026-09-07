@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Zap, Play, Code2, Swords, PenTool, Radio } from "lucide-react";
+import { Zap, Play, Code2, Swords, PenTool, Radio, PanelLeft } from "lucide-react";
 import clsx from "clsx";
 import React from "react";
 import { useWorkspace } from "../context/WorkspaceContext";
@@ -7,9 +7,10 @@ import { useSessionCall } from "../context/SessionCallContext";
 
 interface TopNavProps {
   onProfileClick: () => void;
+  onToggleSidebar: () => void;
 }
 
-export const TopNav = React.memo(function TopNav({ onProfileClick }: TopNavProps) {
+export const TopNav = React.memo(function TopNav({ onProfileClick, onToggleSidebar }: TopNavProps) {
   const location = useLocation();
   const currentPath = location.pathname.split("/")[1] || "collaborate";
   const { executionStatus, runMode } = useWorkspace();
@@ -27,6 +28,13 @@ export const TopNav = React.memo(function TopNav({ onProfileClick }: TopNavProps
     <nav className="relative z-50 flex h-chrome w-full items-center justify-between border-b border-line bg-surface px-4">
       {/* Left: Logo */}
       <div className="flex items-center gap-2.5">
+        <button
+          onClick={onToggleSidebar}
+          className="rounded-control p-1.5 text-ink-muted transition-colors hover:bg-raised hover:text-ink lg:hidden"
+          title="Toggle explorer"
+        >
+          <PanelLeft className="h-4 w-4" />
+        </button>
         <div className="flex h-7 w-7 items-center justify-center rounded-control bg-accent">
           <Zap className="h-4 w-4 text-ground" fill="currentColor" />
         </div>
@@ -51,7 +59,7 @@ export const TopNav = React.memo(function TopNav({ onProfileClick }: TopNavProps
               )}
             >
               {tab.icon}
-              {tab.label}
+              <span className="hidden sm:inline">{tab.label}</span>
             </Link>
           );
         })}
