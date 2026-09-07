@@ -69,7 +69,7 @@ export const TopNav = React.memo(function TopNav({ onProfileClick }: TopNavProps
           )}
         >
           {isConnected ? (
-            <span className="h-1.5 w-1.5 rounded-full bg-ok" />
+            <span className="h-1.5 w-1.5 rounded-full bg-accent" />
           ) : (
             <Radio className="h-3.5 w-3.5" />
           )}

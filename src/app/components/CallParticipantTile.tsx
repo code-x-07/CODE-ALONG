@@ -55,7 +55,7 @@ export const CallParticipantTile = React.memo(function CallParticipantTile({
   return (
     <div
       className={clsx(
-        "relative overflow-hidden rounded-3xl border border-white/10 bg-black/70 shadow-[0_0_30px_rgba(0,0,0,0.35)]",
+        "relative overflow-hidden rounded-panel border border-line bg-raised",
         compact ? "h-28" : "h-56",
         className,
       )}
@@ -70,8 +70,8 @@ export const CallParticipantTile = React.memo(function CallParticipantTile({
         />
       ) : (
         <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_top,#13361f,transparent_60%),linear-gradient(135deg,#050505,#10131a)]">
-          <div className="flex flex-col items-center gap-3 text-white/80">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-2xl font-black">
+          <div className="flex flex-col items-center gap-3 text-ink-muted">
+            <div className="flex h-16 w-16 items-center justify-center rounded-panel border border-line bg-surface text-2xl font-black">
               {participant.name.slice(0, 1).toUpperCase()}
             </div>
             <div className="text-sm font-bold tracking-wide">{participant.name}</div>
@@ -79,22 +79,22 @@ export const CallParticipantTile = React.memo(function CallParticipantTile({
         </div>
       )}
 
-      <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 bg-gradient-to-t from-black/85 via-black/30 to-transparent px-4 py-3">
+      <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 bg-gradient-to-t from-ground via-ground/40 to-transparent px-4 py-3">
         <div className="min-w-0">
-          <div className="truncate text-sm font-bold text-white">{participant.name}</div>
-          <div className="text-[11px] uppercase tracking-[0.2em] text-white/45">
+          <div className="truncate text-sm font-bold text-ink">{participant.name}</div>
+          <div className="text-[11px] uppercase tracking-[0.2em] text-ink-faint">
             {participant.isLocal ? "You" : participant.status}
           </div>
         </div>
 
         <div className="flex items-center gap-2">
           {participant.isMuted && (
-            <span className="rounded-full border border-red-500/30 bg-red-500/10 p-2 text-red-300">
+            <span className="rounded-full border border-line bg-surface p-2 text-ink-faint">
               <MicOff className="h-3.5 w-3.5" />
             </span>
           )}
           {participant.isCameraOff && (
-            <span className="rounded-full border border-red-500/30 bg-red-500/10 p-2 text-red-300">
+            <span className="rounded-full border border-line bg-surface p-2 text-ink-faint">
               <VideoOff className="h-3.5 w-3.5" />
             </span>
           )}

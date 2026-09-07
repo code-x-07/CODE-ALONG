@@ -149,7 +149,7 @@ export default function ArenaPage() {
         <div className="border-b border-line bg-surface px-5 py-4">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-accent">
+              <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-ink-muted">
                 <Swords className="h-4 w-4" />
                 Arena Lobby
               </div>
@@ -316,7 +316,7 @@ export default function ArenaPage() {
             <section className="relative flex min-h-[520px] flex-col gap-4 lg:min-h-0">
               <div className="flex min-h-0 flex-1 flex-col rounded-panel border border-line bg-surface p-4">
                 <div className="mb-4 flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-accent">
+                  <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-ink-muted">
                     <span className="h-2 w-2 rounded-full bg-accent" />
                     Your Editor
                   </div>
@@ -325,7 +325,7 @@ export default function ArenaPage() {
                   </div>
                 </div>
 
-                <div className="relative min-h-[300px] flex-1 overflow-hidden rounded-panel border border-line bg-surface">
+                <div className="relative min-h-[300px] flex-1 overflow-hidden rounded-panel border border-line bg-raised">
                   <CodeEditor
                     value={arenaPlayerCode}
                     onChange={setArenaPlayerCode}
@@ -341,7 +341,7 @@ export default function ArenaPage() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-surface"
+                        className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-raised"
                       >
                         <motion.div
                           key={Math.ceil(remainingMs / 1000)}
@@ -363,7 +363,7 @@ export default function ArenaPage() {
               {/* Opponent live editor */}
               <div className="flex min-h-0 flex-1 flex-col rounded-panel border border-line bg-surface p-4">
                 <div className="mb-4 flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-accent">
+                  <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-ink-muted">
                     <span className={clsx("h-2 w-2 rounded-full", opponentParticipant ? "bg-accent" : "bg-ink-faint")} />
                     {opponentParticipant ? `${opponentParticipant.name} · Live` : "Opponent Editor"}
                   </div>
@@ -372,7 +372,7 @@ export default function ArenaPage() {
                   </div>
                 </div>
 
-                <div className="min-h-[220px] flex-1 overflow-hidden rounded-panel border border-line bg-surface">
+                <div className="min-h-[220px] flex-1 overflow-hidden rounded-panel border border-line bg-raised">
                   {opponentLiveCode !== undefined ? (
                     <CodeEditor
                       value={opponentLiveCode}
@@ -429,7 +429,7 @@ export default function ArenaPage() {
               <section className="flex min-h-[300px] flex-1 flex-col rounded-panel border border-line bg-surface p-4">
                 <div className="mb-4 flex items-center justify-between">
                   <div>
-                    <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-accent">
+                    <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-ink-muted">
                       <Video className="h-4 w-4" />
                       Live Video Stage
                     </div>
@@ -443,7 +443,7 @@ export default function ArenaPage() {
                 </div>
 
                 {participants.length > 0 ? (
-                  <div ref={stageRef} className="relative flex-1 overflow-hidden rounded-panel border border-line bg-surface">
+                  <div ref={stageRef} className="relative flex-1 overflow-hidden rounded-panel border border-line bg-raised">
                     {opponentParticipant ? (
                       <CallParticipantTile
                         key={opponentParticipant.id}

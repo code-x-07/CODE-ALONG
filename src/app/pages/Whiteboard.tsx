@@ -427,7 +427,7 @@ export default function WhiteboardPage() {
       {/* Status chip */}
       <div className="absolute right-6 top-6 z-40 flex items-center gap-2 rounded-full border border-line bg-surface px-4 py-2 text-[11px] font-bold uppercase tracking-[0.18em]">
         <span
-          className={clsx("h-2 w-2 rounded-full", isConnected ? "bg-ok" : "bg-ink-faint")}
+          className={clsx("h-2 w-2 rounded-full", isConnected ? "bg-accent" : "bg-ink-faint")}
         />
         {isConnected ? `Live · ${participants.length} on board` : "Local board · join a room to sync"}
       </div>
