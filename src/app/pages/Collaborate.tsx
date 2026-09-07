@@ -105,7 +105,7 @@ export default function CollaboratePage() {
         </div>
 
         {/* Code Editor Area */}
-        <div className="relative flex-1 bg-ground">
+        <div className="relative flex-1 bg-surface">
           {activeFile ? (
             <CodeEditor
               value={activeFile.content}
@@ -141,8 +141,8 @@ export default function CollaboratePage() {
           >
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
-                <Terminal className="w-3 h-3 text-accent" />
-                <span className="text-xs font-bold text-accent tracking-wider">TERMINAL</span>
+                <Terminal className="w-3 h-3 text-ink-muted" />
+                <span className="text-xs font-bold text-ink-muted tracking-wider">TERMINAL</span>
               </div>
               <div className="h-3 w-[1px] bg-line" />
               <div className="flex items-center gap-2 opacity-50 text-xs">

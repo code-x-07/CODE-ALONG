@@ -52,14 +52,7 @@ export const VideoBubbles = React.memo(function VideoBubbles({ className, stacke
               </span>
             </div>
           )}
-          <div
-            className={clsx(
-              "absolute bottom-1 left-1/2 -translate-x-1/2 rounded bg-surface px-2 py-0.5 text-[10px] font-bold text-ink",
-              participant.accent === "green" && "text-ink",
-              participant.accent === "pink" && "text-ink",
-              participant.accent === "cyan" && "text-ink",
-            )}
-          >
+          <div className="absolute bottom-1 left-1/2 -translate-x-1/2 rounded bg-ground/70 px-2 py-0.5 text-[10px] font-bold text-ink">
             {participant.name}
           </div>
         </div>

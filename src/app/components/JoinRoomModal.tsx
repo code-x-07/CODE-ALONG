@@ -46,7 +46,7 @@ export const JoinRoomModal = React.memo(function JoinRoomModal() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={closeJoinModal}
-            className="fixed inset-0 bg-ground/80 z-50"
+            className="fixed inset-0 bg-ground/80 z-[55]"
           />
 
           <motion.div

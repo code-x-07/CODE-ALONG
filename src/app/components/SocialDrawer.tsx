@@ -45,7 +45,7 @@ export const SocialDrawer = React.memo(function SocialDrawer({ isOpen, onClose }
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={handleBackdropClick}
-            className="fixed inset-0 bg-ground/80 z-50"
+            className="fixed inset-0 bg-ground/80 z-[55]"
           />
 
           {/* Drawer */}
