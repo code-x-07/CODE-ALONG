@@ -34,7 +34,7 @@ export const FloatingCallPanel = React.memo(function FloatingCallPanel() {
       initial={{ opacity: 0, x: 32 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 24 }}
-      className="pointer-events-auto fixed bottom-6 right-6 z-40 w-[340px] rounded-panel border border-line bg-surface p-4"
+      className="pointer-events-auto fixed bottom-6 right-6 z-40 w-[calc(100vw-3rem)] rounded-panel border border-line bg-surface p-4 sm:w-[340px]"
     >
       <div className="mb-4 flex items-start justify-between gap-4">
         <div>
@@ -89,7 +89,7 @@ export const FloatingCallPanel = React.memo(function FloatingCallPanel() {
               "rounded-full border p-2 transition-colors",
               micEnabled
                 ? "border-line bg-raised text-ink hover:border-accent/40 hover:text-accent"
-                : "border-line bg-surface text-ink-faint",
+                : "border-bad/40 bg-bad/10 text-bad",
             )}
           >
             {micEnabled ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
@@ -101,7 +101,7 @@ export const FloatingCallPanel = React.memo(function FloatingCallPanel() {
               "rounded-full border p-2 transition-colors",
               cameraEnabled
                 ? "border-line bg-raised text-ink hover:border-accent/40 hover:text-accent"
-                : "border-line bg-surface text-ink-faint",
+                : "border-bad/40 bg-bad/10 text-bad",
             )}
           >
             {cameraEnabled ? <Video className="h-4 w-4" /> : <VideoOff className="h-4 w-4" />}

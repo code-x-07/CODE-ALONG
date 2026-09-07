@@ -198,7 +198,7 @@ export default function CollaboratePage() {
 
                   {executionStatus === "running" && (
                     <div className="flex items-center gap-2 text-accent">
-                      <span className="inline-block w-2 h-2 rounded-full bg-accent" style={{ animation: 'pulse 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite' }} />
+                      <span className="inline-block w-2 h-2 rounded-full bg-accent animate-blink" />
                       Sandbox is executing...
                     </div>
                   )}

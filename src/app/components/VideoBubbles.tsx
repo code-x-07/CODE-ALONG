@@ -46,7 +46,7 @@ export const VideoBubbles = React.memo(function VideoBubbles({ className, stacke
               className={clsx("w-full h-full object-cover", participant.isCameraOff && "opacity-40 grayscale")}
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_top,#13361f,transparent_60%),linear-gradient(135deg,#050505,#10131a)]">
+            <div className="flex h-full w-full items-center justify-center bg-raised">
               <span className="text-2xl font-black text-ink">
                 {participant.name.slice(0, 1).toUpperCase()}
               </span>

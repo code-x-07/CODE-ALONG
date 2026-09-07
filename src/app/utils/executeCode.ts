@@ -215,14 +215,14 @@ export async function executeCode({ language, sourceCode, fileName = "main.txt" 
 
 // Starter templates so the editor isn't empty when a user switches languages
 export const CODE_TEMPLATES: Record<string, string> = {
-  javascript: 'console.log("Welcome to Aura-Vine IDE!");',
-  python: 'print("Welcome to Aura-Vine IDE!")',
-  java: `public class Main {\n  public static void main(String[] args) {\n    System.out.println("Welcome to Aura-Vine IDE!");\n  }\n}`,
-  cpp: `#include <iostream>\n\nint main() {\n    std::cout << "Welcome to Aura-Vine IDE!" << std::endl;\n    return 0;\n}`,
-  c: `#include <stdio.h>\n\nint main() {\n    printf("Welcome to Aura-Vine IDE!\\n");\n    return 0;\n}`,
-  rust: `fn main() {\n    println!("Welcome to Aura-Vine IDE!");\n}`,
-  go: `package main\n\nimport "fmt"\n\nfunc main() {\n    fmt.Println("Welcome to Aura-Vine IDE!")\n}`,
-  ruby: `puts "Welcome to Aura-Vine IDE!"`,
-  php: `<?php\n\necho "Welcome to Aura-Vine IDE!";\n?>`,
-  csharp: `using System;\n\nclass Program {\n  static void Main() {\n    Console.WriteLine("Welcome to Aura-Vine IDE!");\n  }\n}`
+  javascript: 'console.log("Welcome to Code Along!");',
+  python: 'print("Welcome to Code Along!")',
+  java: `public class Main {\n  public static void main(String[] args) {\n    System.out.println("Welcome to Code Along!");\n  }\n}`,
+  cpp: `#include <iostream>\n\nint main() {\n    std::cout << "Welcome to Code Along!" << std::endl;\n    return 0;\n}`,
+  c: `#include <stdio.h>\n\nint main() {\n    printf("Welcome to Code Along!\\n");\n    return 0;\n}`,
+  rust: `fn main() {\n    println!("Welcome to Code Along!");\n}`,
+  go: `package main\n\nimport "fmt"\n\nfunc main() {\n    fmt.Println("Welcome to Code Along!")\n}`,
+  ruby: `puts "Welcome to Code Along!"`,
+  php: `<?php\n\necho "Welcome to Code Along!";\n?>`,
+  csharp: `using System;\n\nclass Program {\n  static void Main() {\n    Console.WriteLine("Welcome to Code Along!");\n  }\n}`
 };

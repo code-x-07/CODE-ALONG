@@ -5,7 +5,9 @@ import clsx from "clsx";
 import { makeOpId, useWhiteboard, WhiteboardOp, WhiteboardTool } from "../context/WhiteboardContext";
 import { useSessionCall } from "../context/SessionCallContext";
 
-const COLORS = ["#ffffff", "#39FF14", "#FF1493", "#22d3ee", "#fbbf24"];
+// Pen colors mirror the theme tokens (ink / accent / ok / bad / warn) — kept
+// deliberately distinct so strokes read apart. Keep in sync with src/styles/theme.css.
+const COLORS = ["#E8EAED", "#5B8DEF", "#4ADE80", "#FBBF24", "#F87171"];
 const PEN_SIZES = [2, 4, 8];
 const ERASER_SIZE = 28;
 const PROGRESS_STREAM_MS = 80;

@@ -148,16 +148,18 @@ export default function ArenaPage() {
       <Sidebar isOpen={isSidebarOpen} />
 
       <div className="relative flex min-h-0 flex-1 flex-col bg-surface">
-        <div className="border-b border-line bg-surface px-5 py-4">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-ink-muted">
-                <Swords className="h-4 w-4" />
-                Arena Lobby
-              </div>
-              <h1 className="mt-2 text-2xl font-black tracking-tight text-ink">{roomLabel}</h1>
+        <div className="border-b border-line bg-surface">
+          {/* Chrome bar — fixed 48px so it lines up with the sidebar header in the column beside it. */}
+          <div className="flex h-chrome items-center gap-3 border-b border-line px-5">
+            <div className="flex shrink-0 items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-ink-muted">
+              <Swords className="h-4 w-4" />
+              Arena Lobby
             </div>
+            <h1 className="min-w-0 truncate text-sm font-black tracking-tight text-ink">{roomLabel}</h1>
+          </div>
 
+          {/* Everything else sits below the chrome bar so the bar height stays the invariant. */}
+          <div className="px-5 py-4">
             <div className="flex flex-wrap items-center gap-3">
               {match && (
                 <div
@@ -212,7 +214,6 @@ export default function ArenaPage() {
                 {isConnected ? "Room" : "Create / Join"}
               </button>
             </div>
-          </div>
 
           {/* Match strip: challenge + timer bar + scores */}
           {match && challenge && (
@@ -310,6 +311,7 @@ export default function ArenaPage() {
               {connectionError}
             </div>
           )}
+          </div>
         </div>
 
         <div className="custom-scrollbar min-h-0 flex-1 overflow-y-auto p-4">

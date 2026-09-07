@@ -1,5 +1,38 @@
 import { AccessToken, RoomServiceClient } from "livekit-server-sdk";
 
+// Lightweight in-memory rate limit by client IP, mirroring the Piston execution
+// limiter in server.mjs. NOTE: in-memory state is per-instance, so on serverless
+// this is only partial protection — a Vercel WAF rule is the real fix.
+const TOKEN_RATE_LIMIT_WINDOW_MS = Number(process.env.TOKEN_RATE_LIMIT_WINDOW_MS || 60_000);
+const TOKEN_RATE_LIMIT_MAX_REQUESTS = Number(process.env.TOKEN_RATE_LIMIT_MAX_REQUESTS || 20);
+const tokenRequestLog = new Map();
+
+function getClientAddress(req) {
+  const forwardedFor = req.headers["x-forwarded-for"];
+
+  if (typeof forwardedFor === "string" && forwardedFor.length > 0) {
+    return forwardedFor.split(",")[0].trim();
+  }
+
+  return req.socket?.remoteAddress || "unknown";
+}
+
+function isTokenRateLimited(req) {
+  const clientAddress = getClientAddress(req);
+  const now = Date.now();
+  const currentWindow = tokenRequestLog.get(clientAddress) || [];
+  const recentRequests = currentWindow.filter((timestamp) => now - timestamp < TOKEN_RATE_LIMIT_WINDOW_MS);
+
+  if (recentRequests.length >= TOKEN_RATE_LIMIT_MAX_REQUESTS) {
+    tokenRequestLog.set(clientAddress, recentRequests);
+    return true;
+  }
+
+  recentRequests.push(now);
+  tokenRequestLog.set(clientAddress, recentRequests);
+  return false;
+}
+
 async function readBody(req) {
   if (req.body && typeof req.body === "object") {
     return req.body;
@@ -18,6 +51,13 @@ async function readBody(req) {
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     res.status(405).json({ message: "Method not allowed." });
+    return;
+  }
+
+  if (isTokenRateLimited(req)) {
+    res.status(429).json({
+      message: "Too many token requests from this address. Wait a minute and try again.",
+    });
     return;
   }
 

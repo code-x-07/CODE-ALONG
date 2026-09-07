@@ -69,7 +69,7 @@ export const CallParticipantTile = React.memo(function CallParticipantTile({
           className="h-full w-full object-cover"
         />
       ) : (
-        <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(circle_at_top,#13361f,transparent_60%),linear-gradient(135deg,#050505,#10131a)]">
+        <div className="flex h-full w-full items-center justify-center bg-raised">
           <div className="flex flex-col items-center gap-3 text-ink-muted">
             <div className="flex h-16 w-16 items-center justify-center rounded-panel border border-line bg-surface text-2xl font-black">
               {participant.name.slice(0, 1).toUpperCase()}

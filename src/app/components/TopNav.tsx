@@ -28,13 +28,15 @@ export const TopNav = React.memo(function TopNav({ onProfileClick, onToggleSideb
     <nav className="relative z-50 flex h-chrome w-full items-center justify-between border-b border-line bg-surface px-4">
       {/* Left: Logo */}
       <div className="flex items-center gap-2.5">
-        <button
-          onClick={onToggleSidebar}
-          className="rounded-control p-1.5 text-ink-muted transition-colors hover:bg-raised hover:text-ink lg:hidden"
-          title="Toggle explorer"
-        >
-          <PanelLeft className="h-4 w-4" />
-        </button>
+        {currentPath !== "whiteboard" && (
+          <button
+            onClick={onToggleSidebar}
+            className="rounded-control p-1.5 text-ink-muted transition-colors hover:bg-raised hover:text-ink lg:hidden"
+            title="Toggle explorer"
+          >
+            <PanelLeft className="h-4 w-4" />
+          </button>
+        )}
         <div className="flex h-7 w-7 items-center justify-center rounded-control bg-accent">
           <Zap className="h-4 w-4 text-ground" fill="currentColor" />
         </div>
