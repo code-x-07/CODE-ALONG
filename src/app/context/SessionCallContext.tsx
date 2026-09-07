@@ -31,7 +31,7 @@ type SessionCallContextValue = {
   liveKitUrl: string | null;
   shareUrl: string | null;
   copiedShareLink: boolean;
-  errorMessage: string | null;
+  connectionError: string | null;
   openJoinModal: (roomId?: string) => void;
   closeJoinModal: () => void;
   createRoom: (name?: string) => Promise<void>;
@@ -127,19 +127,31 @@ function buildParticipants(room: Room, fallbackLocalName: string): CallParticipa
 }
 
 async function requestLiveKitToken(roomName: string, participantName: string) {
-  const response = await fetch("/api/livekit/token", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: JSON.stringify({ roomName, participantName }),
-  });
+  let response: Response;
 
-  const data = await response.json();
+  try {
+    response = await fetch("/api/livekit/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ roomName, participantName }),
+    });
+  } catch {
+    throw new Error(
+      "Could not reach the LiveKit token endpoint (/api/livekit/token). Check that the app server is running.",
+    );
+  }
 
-  if (!response.ok) {
-    throw new Error(data.message || "Failed to create a LiveKit token.");
+  // A deployment without the token route configured answers with HTML, not JSON.
+  const data = (await response.json().catch(() => null)) as { message?: string; token?: string; url?: string } | null;
+
+  if (!response.ok || !data) {
+    throw new Error(
+      data?.message ||
+        "LiveKit is not configured on this deployment — the token endpoint (/api/livekit/token) did not return a valid response.",
+    );
   }
 
   return data as { token: string; url: string; roomName: string; participantName: string };
@@ -157,7 +169,7 @@ export function SessionCallProvider({ children }: { children: React.ReactNode })
   const [isConnecting, setIsConnecting] = useState(false);
   const [liveKitUrl, setLiveKitUrl] = useState<string | null>(null);
   const [copiedShareLink, setCopiedShareLink] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
   const [localIdentity, setLocalIdentity] = useState<string | null>(null);
   const roomRef = useRef<Room | null>(null);
   const dataHandlersRef = useRef<Map<string, Set<DataMessageHandler>>>(new Map());
@@ -229,7 +241,7 @@ export function SessionCallProvider({ children }: { children: React.ReactNode })
       const normalizedName = name?.trim() || displayName || "You";
       const normalizedRoomId = normalizeRoomCode(roomId) || generateRoomCode();
 
-      setErrorMessage(null);
+      setConnectionError(null);
       setIsJoinModalOpen(false);
       setIsConnecting(true);
       setIsConnected(false);
@@ -322,7 +334,10 @@ export function SessionCallProvider({ children }: { children: React.ReactNode })
         setActiveRoomId(null);
         setLiveKitUrl(null);
         setLocalIdentity(null);
-        setErrorMessage(error instanceof Error ? error.message : "Failed to connect to the call room.");
+        setPendingRoomId(null);
+        setConnectionError(error instanceof Error ? error.message : "Failed to connect to the call room.");
+        // Reopen the lobby so the failure is visible instead of a silent, stuck "connecting" state.
+        setIsJoinModalOpen(true);
       } finally {
         setIsConnecting(false);
       }
@@ -345,7 +360,7 @@ export function SessionCallProvider({ children }: { children: React.ReactNode })
     setIsJoinModalOpen(false);
     setLiveKitUrl(null);
     setCopiedShareLink(false);
-    setErrorMessage(null);
+    setConnectionError(null);
     syncRoomLocation(null);
   }, [cleanupRoom]);
 
@@ -413,7 +428,7 @@ export function SessionCallProvider({ children }: { children: React.ReactNode })
       liveKitUrl,
       shareUrl,
       copiedShareLink,
-      errorMessage,
+      connectionError,
       openJoinModal: (roomId?: string) => {
         if (roomId) {
           setPendingRoomId(normalizeRoomCode(roomId));
@@ -440,7 +455,7 @@ export function SessionCallProvider({ children }: { children: React.ReactNode })
       copyShareLink,
       createRoom,
       displayName,
-      errorMessage,
+      connectionError,
       isConnected,
       isConnecting,
       isJoinModalOpen,

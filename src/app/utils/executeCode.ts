@@ -79,6 +79,16 @@ export function isRunnableLanguage(language: EditorLanguage): language is Runnab
   return RUNNABLE_LANGUAGES.has(language as RunnableLanguage);
 }
 
+/**
+ * JS runs in an in-browser Web Worker and always works. Every other language
+ * proxies to a Piston instance, and the public emkc.org endpoint went
+ * whitelist-only in February 2026 — so on deployments without a dedicated
+ * Piston backend those runtimes are simply unavailable.
+ */
+export function isRuntimeAvailable(language: string): boolean {
+  return language === "javascript";
+}
+
 type PistonExecuteResponse = {
   message?: string;
   compile?: {
@@ -168,10 +178,19 @@ export async function executeCode({ language, sourceCode, fileName = "main.txt" 
     }),
   });
 
-  const data = (await response.json()) as PistonExecuteResponse;
+  // A deployment without a configured Piston proxy answers with HTML (a 404
+  // page or the SPA shell), not JSON — treat that the same as a non-OK response.
+  const data = (await response.json().catch(() => null)) as PistonExecuteResponse | null;
 
-  if (!response.ok) {
-    throw new Error(data.message || "Error executing code in sandbox.");
+  if (!response.ok || !data) {
+    if (!isRuntimeAvailable(language)) {
+      throw new Error(
+        `${LANGUAGE_LABELS[language]} runtime is not configured on this deployment. ` +
+          `JavaScript runs in-browser and works without setup.`,
+      );
+    }
+
+    throw new Error(data?.message || "Error executing code in sandbox.");
   }
 
   if (data.compile && data.compile.code !== 0) {

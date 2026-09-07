@@ -19,7 +19,7 @@ export const FloatingCallPanel = React.memo(function FloatingCallPanel() {
     isConnecting,
     micEnabled,
     cameraEnabled,
-    errorMessage,
+    connectionError,
     leaveRoom,
     toggleMic,
     toggleCamera,
@@ -68,9 +68,9 @@ export const FloatingCallPanel = React.memo(function FloatingCallPanel() {
         ))}
       </div>
 
-      {errorMessage && (
+      {connectionError && (
         <div className="mt-3 rounded-panel border border-bad/40 bg-bad/10 px-3 py-2 text-xs text-bad">
-          {errorMessage}
+          {connectionError}
         </div>
       )}
 

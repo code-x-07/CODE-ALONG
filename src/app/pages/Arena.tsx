@@ -30,7 +30,7 @@ export default function ArenaPage() {
     openJoinModal,
     shareUrl,
     copiedShareLink,
-    errorMessage,
+    connectionError,
     stageRoom,
     copyShareLink,
     localIdentity,
@@ -303,9 +303,9 @@ export default function ArenaPage() {
             </div>
           )}
 
-          {errorMessage && (
+          {connectionError && (
             <div className="mt-4 rounded-panel border border-bad/40 bg-bad/10 px-4 py-3 text-sm text-bad">
-              {errorMessage}
+              {connectionError}
             </div>
           )}
         </div>

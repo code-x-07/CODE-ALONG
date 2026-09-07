@@ -13,7 +13,7 @@ export const JoinRoomModal = React.memo(function JoinRoomModal() {
     activeRoomId,
     pendingRoomId,
     isConnecting,
-    errorMessage,
+    connectionError,
   } = useSessionCall();
   const [nameInput, setNameInput] = useState(displayName);
   const [roomInput, setRoomInput] = useState(activeRoomId || pendingRoomId || "");
@@ -127,9 +127,9 @@ export const JoinRoomModal = React.memo(function JoinRoomModal() {
               </button>
             </div>
 
-            {errorMessage && (
+            {connectionError && (
               <div className="mt-4 rounded-panel border border-bad/40 bg-bad/10 px-4 py-3 text-sm text-bad">
-                {errorMessage}
+                {connectionError}
               </div>
             )}
           </motion.div>

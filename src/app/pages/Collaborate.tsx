@@ -2,12 +2,12 @@ import { useCallback, useEffect, useRef } from 'react';
 import { Sidebar } from '../components/Sidebar';
 import { CodeEditor } from '../components/CodeEditor';
 import { VideoBubbles } from '../components/VideoBubbles';
-import { Radio, Terminal, X, Maximize2, Minimize2, MoreHorizontal, Save } from 'lucide-react';
+import { Radio, Terminal, X, Maximize2, Minimize2, MoreHorizontal, Save, FileCode2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import clsx from 'clsx';
 import { useWorkspace } from '../context/WorkspaceContext';
 import { useSessionCall } from '../context/SessionCallContext';
-import { LANGUAGE_LABELS } from '../utils/executeCode';
+import { LANGUAGE_LABELS, isRunnableLanguage, isRuntimeAvailable } from '../utils/executeCode';
 
 export default function CollaboratePage() {
   const {
@@ -63,8 +63,21 @@ export default function CollaboratePage() {
                     : "text-ink-muted hover:bg-raised hover:text-ink",
                 )}
               >
-                <span className={clsx(isActive ? "text-accent" : "text-ink-faint")}>
+                <span
+                  className={clsx(
+                    "font-mono text-[11px]",
+                    isActive ? "text-accent" : "text-ink-faint",
+                  )}
+                  title={
+                    isRunnableLanguage(file.language) && !isRuntimeAvailable(file.language)
+                      ? "Runtime not configured on this deployment"
+                      : undefined
+                  }
+                >
                   {LANGUAGE_LABELS[file.language]}
+                  {isRunnableLanguage(file.language) && !isRuntimeAvailable(file.language) && (
+                    <span className="ml-1 text-ink-faint">·</span>
+                  )}
                 </span>
                 <span>{file.name}</span>
                 <button
@@ -114,8 +127,12 @@ export default function CollaboratePage() {
               className="h-full"
             />
           ) : (
-            <div className="flex h-full items-center justify-center text-ink-faint">
-              Create a file in the explorer to start editing.
+            <div className="flex h-full flex-col items-center justify-center gap-1 text-center">
+              <FileCode2 className="mb-2 h-8 w-8 text-ink-faint" />
+              <p className="text-[15px] font-medium text-ink">No file open</p>
+              <p className="text-[13px] text-ink-muted">
+                Select a file from the explorer, or press + to create one.
+              </p>
             </div>
           )}
           
