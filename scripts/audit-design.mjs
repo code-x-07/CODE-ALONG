@@ -2,7 +2,7 @@
 // Fails the build when banned visual patterns appear in application source.
 // Each rule maps to a requirement in the production-readiness spec.
 import { readFileSync } from 'node:fs';
-import { glob } from 'node:fs/promises';
+import { readdir } from 'node:fs/promises';
 
 const CHROME_FILES = [
   'src/app/layout.tsx',
