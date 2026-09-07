@@ -50,12 +50,16 @@ const CHROME_RULE = {
   message: 'Chrome bars must use h-chrome (48px).',
 };
 
-async function collect() {
-  const files = [];
-  for await (const f of glob('src/app/**/*.{ts,tsx}')) {
-    if (!f.includes('components/ui/')) files.push(f);
-  }
-  return files.sort();
+async function collect(dir = 'src/app') {
+  const entries = await readdir(dir, { withFileTypes: true });
+  const nested = await Promise.all(entries.map(async (entry) => {
+    const fullPath = `${dir}/${entry.name}`;
+    if (entry.isDirectory()) return collect(fullPath);
+    if (!/\.(ts|tsx)$/.test(entry.name)) return [];
+    if (fullPath.includes('components/ui/')) return [];
+    return [fullPath];
+  }));
+  return nested.flat().sort();
 }
 
 const violations = [];
